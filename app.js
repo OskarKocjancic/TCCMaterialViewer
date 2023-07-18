@@ -3,14 +3,16 @@ var materials = [];
 var chart;
 var labels = [];
 var shownFiles = [];
+var selectProperties = ["k", "rho"];
 fetch(urlFlags).then((response) =>
 	response.text().then((data) => {
-		var materialsList = document.getElementById("materials-list");
+		var materialsList = document.getElementById("materialsList");
 		materials = Papa.parse(data, { header: true }).data;
 		materials.forEach((m) => Object.keys(m).forEach((a) => (m[a] = a != "" ? m[a] === "1" : m[a])));
 		materials.forEach((m) => (m["properties"] = []));
 		materials.forEach((m) => {
-			var li = document.createElement("li");
+			var materialContainer = document.createElement("div");
+			materialContainer.className = "materialContainer";
 			var materialName = document.createElement("div");
 			materialName.className = "materialName";
 			materialName.innerHTML = m[""];
@@ -23,8 +25,11 @@ fetch(urlFlags).then((response) =>
 			propertiesContainer.style.display = "none";
 			m["properties"].push("k");
 			m["properties"].push("rho");
+
 			if (m.invariant) {
 				m["properties"].push("cp");
+
+				if (!selectProperties.includes("cp")) selectProperties.push("cp");
 			}
 			if (m.magnetocaloric) {
 				var url = "http://127.0.0.1:8888/materials_library/" + m[""] + "/" + "Fields.txt";
@@ -33,24 +38,41 @@ fetch(urlFlags).then((response) =>
 					.then((data) => {
 						data.split("\n").forEach((prop) => {
 							m["properties"].push(`cp_${prop}T`);
+							if (!selectProperties.includes(`cp_${prop}T`))selectProperties.push(`cp_${prop}T`);
 							if (!(prop == 0)) {
 								m["properties"].push(`dT_${prop}T_heating`);
 								m["properties"].push(`dT_${prop}T_cooling`);
+								if (!selectProperties.includes(`dT_${prop}T_heating`)) selectProperties.push(`dT_${prop}T_heating`);
+								if (!selectProperties.includes(`dT_${prop}T_cooling`)) selectProperties.push(`dT_${prop}T_cooling`);
 							}
 						});
 						loadProperties(m, propertiesContainer);
 					});
 			}
+
 			loadProperties(m, propertiesContainer);
 
-			li.appendChild(materialName);
-			li.appendChild(propertiesContainer);
-			materialsList.appendChild(li);
+			materialContainer.appendChild(materialName);
+			materialContainer.appendChild(propertiesContainer);
+			materialsList.appendChild(materialContainer);
 		});
+		var select = document.querySelector(".selectProperties");
+		select.onclick = () => {
+			if (chart != undefined) chart.destroy();
+			loadGraph(materials.map((m) => m[""] + "/" + select.value));
+		};
 	})
 );
 
 function loadProperties(material, propertiesContainer) {
+	var select = document.querySelector(".selectProperties");
+	select.innerHTML = "";
+	selectProperties.forEach((p) => {
+		var option = document.createElement("option");
+		option.value = p;
+		option.innerHTML = p;
+		select.appendChild(option);
+	});
 	propertiesContainer.innerHTML = "";
 	material["properties"].forEach((property) => {
 		var button = document.createElement("button");
@@ -69,16 +91,17 @@ function loadProperties(material, propertiesContainer) {
 	});
 }
 
-function clearShown() {
+function clearShownFiles() {
 	shownFiles = [];
 	if (chart != undefined) chart.destroy();
 	document.querySelectorAll("button").forEach((button) => button.classList.remove("activeMaterialProperty"));
 }
+
 function loadGraph(names) {
-	if (shownFiles.length == 0) {
+	/* 	if ((shownFiles.length == 0) & (chart !== undefined)) {
 		chart.destroy();
 		return;
-	}
+	} */
 	const ctx = document.getElementById("myChart").getContext("2d");
 
 	const datasets = names.map((name) => {
@@ -90,7 +113,7 @@ function loadGraph(names) {
 				const newDataPoints = [];
 				let i = 0;
 				dataPoints.forEach((x) => {
-					if (i % 1 === 0) {
+					if (i % 100 === 0) {
 						newDataPoints.push(x);
 						labels.push(i * 0.1);
 					}
@@ -106,6 +129,7 @@ function loadGraph(names) {
 			});
 	});
 	Promise.all(datasets).then((datasets) => {
+		datasets=datasets.filter(d=>d.data.length>1)
 		if (chart != undefined) chart.destroy();
 		chart = new Chart(ctx, {
 			type: "line",
@@ -125,15 +149,27 @@ function loadGraph(names) {
 						position: "bottom",
 					},
 				},
+
 				layout: {
 					padding: {
 						left: 0,
 					},
 				},
 				plugins: {
-					legend: {
-						display: true,
-						position: "top",
+					zoom: {
+						limits: {
+							x: { min: "original", max: "original" },
+							y: { min: "original", max: "original" },
+						},
+						zoom: {
+							wheel: {
+								enabled: true,
+							},
+							pinch: {
+								enabled: true,
+							},
+							mode: "xy",
+						},
 					},
 				},
 			},

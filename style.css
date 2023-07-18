@@ -16,34 +16,72 @@
 }
 
 body {
-  min-height: 100vh;
+  min-height: 98vh;
   font-family: 'Roboto', sans-serif;
-  background-color: var(--white);
-}
-
-.materials-list {
-  list-style-type: none;
-  grid-area: materials-list;
-  overflow: auto;
   background-color: var(--gray);
 }
 
-.materials-list>li {
+canvas {
+  background-color: var(--white);
+}
+
+.container {
+  display: grid;
+  width: 100%;
+  min-height: 100vh;
+  grid-auto-flow: row;
+  grid-template-columns: 0.75fr 1.25fr 1fr;
+  grid-template-rows: 1fr 1fr 1.75fr 0.25fr; 
+  grid-template-areas:
+    "materialsList rightSide rightSide"
+    "materialsList rightSide rightSide"
+    "materialsList rightSide rightSide"
+    "bottomLeft rightSide rightSide"; 
+}
+.bottomLeft{
+  grid-area: bottomLeft;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: space-evenly;
+  justify-content: flex-start;
+  overflow: auto;
+  flex-wrap: wrap;
+  background-color: var(--blue);
+  padding: 0.5rem;
 }
 
+.rightSide {
+  grid-area: rightSide;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.materialsList {
+  grid-area: materialsList;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: auto;
+  flex-wrap: wrap;
+  background-color: var(--blue);
+  padding: 0.5rem;
+}
+
+.materialContainer {
+  width: 100%;
+}
 
 .materialName {
   color: var(--white);
   background-color: var(--yellow);
   border-bottom: 0.125rem solid var(--deep-yellow);
   cursor: pointer;
-  width: 100%;
   text-align: left;
   padding: 0.125rem;
+  width: 100%;
 
 }
 
@@ -60,6 +98,37 @@ body {
   padding: 0.125rem;
 }
 
+.selectProperties {
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 0.125rem;
+  color: var(--white);
+  background-color: var(--yellow);
+}
+
+.heading {
+  width: 100%;
+  text-align: left;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.selectProperties:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.selectProperties option {
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 0.125rem;
+  color: var(--white);
+  background-color: var(--yellow);
+}
 
 
 .materialProperty:hover {
@@ -82,7 +151,7 @@ body {
   cursor: pointer;
   width: 100%;
   text-align: left;
-  padding: 1rem;
+  padding: 0.25rem;
 }
 
 .resetButton:hover {
@@ -99,52 +168,28 @@ body {
   width: 100%;
 }
 
-.container {
-  display: grid;
-  width: 100%;
-  min-height: 100vh;
-  grid-template-columns: 1fr;
-  grid-template-rows: 0.5fr 1fr 1fr;
-  gap: 0px 0px;
-  grid-auto-flow: row;
-  grid-template-areas:
-    "materials-list"
-    "rightSide"
-    "rightSide";
-}
 
-.rightSide {
-  grid-area: rightSide;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+
 ::-webkit-scrollbar {
   display: none;
 }
 
-@media (min-width: 768px) {
-  .container {
-    grid-template-columns: 0.75fr 1.25fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-    grid-template-areas:
-      "materials-list rightSide rightSide"
-      "materials-list rightSide rightSide"
-      "materials-list rightSide rightSide";
-  }
+nav {
+  background-color: var(--blue);
+  color: var(--white);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
 }
 
-@media (max-width: 480px) {
-  .materials-list {
-    overflow: visible;
-  }
-
-  .materialName,
-  .materialProperty,
-  .resetButton {
-    width: auto;
-  }
+nav a {
+  color: var(--white);
+  text-decoration: none;
+  margin: 0 0.5rem;
 }
 
+nav a:hover {
+  color: var(--yellow);
+}
 

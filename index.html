@@ -4,17 +4,25 @@
 		<title>File Graph</title>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
 		<div class="container">
-			<ul class="materials-list" id="materials-list">
-				<li>
-					<button class="resetButton" onclick="clearShown()">Reset shown</button>
-				</li>
-			</ul>
+			<div class="materialsList" id="materialsList">
+				<div class="heading">Compare properties</div>
+				<select class="selectProperties">
+					<option value="k">k</option>
+					<option value="rho">rho</option>
+					<option value="cp">cp</option>
+				</select>
+				<div class="heading">Available materials</div>
+			</div>
 			<div class="rightSide">
 				<canvas class="myChart" id="myChart"></canvas>
+			</div>
+			<div class="bottomLeft">
+				<button class="resetButton" onclick="clearShownFiles()">Clear Graph</button>
 			</div>
 		</div>
 
