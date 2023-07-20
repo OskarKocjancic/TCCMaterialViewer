@@ -1,4 +1,7 @@
-var urlFlags = "http://127.0.0.1:8888/materials_flags.csv";
+var CORSproxy = "https://corsproxy.io/?";
+var materialLibraryURL = CORSproxy + "http://materials.tccbuilder.org/";
+
+var urlFlags = materialLibraryURL + "/materials_flags.csv";
 var materials = [];
 var chart;
 var labels = [];
@@ -6,6 +9,7 @@ var shownFiles = [];
 var selectProperties = ["k", "rho"];
 fetch(urlFlags).then((response) =>
 	response.text().then((data) => {
+		console.log(data);
 		var materialsList = document.getElementById("materialsList");
 		materials = Papa.parse(data, { header: true }).data;
 		materials.forEach((m) => Object.keys(m).forEach((a) => (m[a] = a != "" ? m[a] === "1" : m[a])));
@@ -32,13 +36,13 @@ fetch(urlFlags).then((response) =>
 				if (!selectProperties.includes("cp")) selectProperties.push("cp");
 			}
 			if (m.magnetocaloric) {
-				var url = "http://127.0.0.1:8888/materials_library/" + m[""] + "/" + "Fields.txt";
+				var url = materialLibraryURL + m[""] + "/" + "Fields.txt";
 				fetch(url)
 					.then((response) => response.text())
 					.then((data) => {
 						data.split("\n").forEach((prop) => {
 							m["properties"].push(`cp_${prop}T`);
-							if (!selectProperties.includes(`cp_${prop}T`))selectProperties.push(`cp_${prop}T`);
+							if (!selectProperties.includes(`cp_${prop}T`)) selectProperties.push(`cp_${prop}T`);
 							if (!(prop == 0)) {
 								m["properties"].push(`dT_${prop}T_heating`);
 								m["properties"].push(`dT_${prop}T_cooling`);
@@ -105,7 +109,7 @@ function loadGraph(names) {
 	const ctx = document.getElementById("myChart").getContext("2d");
 
 	const datasets = names.map((name) => {
-		const url = "http://127.0.0.1:8888/materials_library/" + name + ".txt";
+		const url = materialLibraryURL + name + ".txt";
 		return fetch(url)
 			.then((response) => response.text())
 			.then((data) => {
@@ -129,7 +133,7 @@ function loadGraph(names) {
 			});
 	});
 	Promise.all(datasets).then((datasets) => {
-		datasets=datasets.filter(d=>d.data.length>1)
+		datasets = datasets.filter((d) => d.data.length > 1);
 		if (chart != undefined) chart.destroy();
 		chart = new Chart(ctx, {
 			type: "line",
