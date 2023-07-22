@@ -31,14 +31,15 @@ canvas {
   min-height: 100vh;
   grid-auto-flow: row;
   grid-template-columns: 0.75fr 1.25fr 1fr;
-  grid-template-rows: 1fr 1fr 1.75fr 0.25fr; 
+  grid-template-rows: 1fr 1fr 1.75fr 0.25fr;
   grid-template-areas:
     "materialsList rightSide rightSide"
     "materialsList rightSide rightSide"
     "materialsList rightSide rightSide"
-    "bottomLeft rightSide rightSide"; 
+    "bottomLeft rightSide rightSide";
 }
-.bottomLeft{
+
+.bottomLeft {
   grid-area: bottomLeft;
   display: flex;
   flex-direction: column;
@@ -98,6 +99,8 @@ canvas {
   padding: 0.125rem;
 }
 
+
+
 .selectProperties {
   border: none;
   cursor: pointer;
@@ -108,10 +111,22 @@ canvas {
   background-color: var(--yellow);
 }
 
+.selectProperties:hover {
+  background-color: var(--white);
+  color: var(--gray);
+}
+
 .heading {
   width: 100%;
   text-align: left;
   color: var(--white);
+  margin-bottom: 0.5rem;
+}
+.heading2{
+  width: 100%;
+  text-align: left;
+  color: var(--white);
+  font-size: 0.75rem;
   margin-bottom: 0.5rem;
 }
 
@@ -126,10 +141,14 @@ canvas {
   width: 100%;
   text-align: left;
   padding: 0.125rem;
-  color: var(--white);
-  background-color: var(--yellow);
+  background-color: var(--white);
+  color: var(--gray);
 }
 
+.selectProperties option:hover {
+  box-shadow: 0 0 10px 100px #000 inset;
+
+}
 
 .materialProperty:hover {
   color: var(--white);
@@ -168,7 +187,19 @@ canvas {
   width: 100%;
 }
 
-
+input{
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  padding: 0.125rem;
+  color: var(--white);
+  background-color: var(--yellow);
+  margin: 0.125rem;
+}
+input:focus {
+  outline: none !important;
+}
 
 ::-webkit-scrollbar {
   display: none;
@@ -192,4 +223,3 @@ nav a {
 nav a:hover {
   color: var(--yellow);
 }
-

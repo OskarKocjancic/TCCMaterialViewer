@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>File Graph</title>
+		<title>Material Viewer</title>
 		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
@@ -10,19 +10,27 @@
 	<body>
 		<div class="container">
 			<div class="materialsList" id="materialsList">
+				<div class="heading">Define range</div>
+				<div class="heading2">From:</div>
+				<input  id="from"  type="text">
+				<div class="heading2">To:</div>
+				<input  id="to"  type="text">
+				<br>
 				<div class="heading">Compare properties</div>
 				<select class="selectProperties">
 					<option value="k">k</option>
 					<option value="rho">rho</option>
 					<option value="cp">cp</option>
 				</select>
-				<div class="heading">Available materials</div>
+				<br>
+				
+				<div class="heading">Manually toggle in graph</div>
 			</div>
 			<div class="rightSide">
 				<canvas class="myChart" id="myChart"></canvas>
 			</div>
 			<div class="bottomLeft">
-				<button class="resetButton" onclick="clearShownFiles()">Clear Graph</button>
+				<button class="resetButton" onclick="reset()">Reset</button>
 			</div>
 		</div>
 

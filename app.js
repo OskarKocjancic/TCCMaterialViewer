@@ -1,6 +1,7 @@
 var CORSproxy = "https://corsproxy.io/?";
 var materialLibraryURL = CORSproxy + "http://materials.tccbuilder.org/";
-
+var from = document.getElementById("from");
+var to = document.getElementById("to");
 var urlFlags = materialLibraryURL + "/materials_flags.csv";
 var materials = [];
 var chart;
@@ -8,64 +9,96 @@ var labels = [];
 var shownFiles = [];
 var selectProperties = ["k", "rho"];
 fetch(urlFlags).then((response) =>
-	response.text().then((data) => {
-		console.log(data);
-		var materialsList = document.getElementById("materialsList");
-		materials = Papa.parse(data, { header: true }).data;
-		materials.forEach((m) => Object.keys(m).forEach((a) => (m[a] = a != "" ? m[a] === "1" : m[a])));
-		materials.forEach((m) => (m["properties"] = []));
-		materials.forEach((m) => {
-			var materialContainer = document.createElement("div");
-			materialContainer.className = "materialContainer";
-			var materialName = document.createElement("div");
-			materialName.className = "materialName";
-			materialName.innerHTML = m[""];
-			materialName.onclick = () => {
-				Array.from(document.getElementsByClassName("propertiesContainer")).forEach((c) => (c != propertiesContainer ? (c.style.display = "none") : {}));
-				propertiesContainer.style.display = propertiesContainer.style.display == "none" ? "flex" : "none";
-			};
-			var propertiesContainer = document.createElement("div");
-			propertiesContainer.className = "propertiesContainer";
-			propertiesContainer.style.display = "none";
-			m["properties"].push("k");
-			m["properties"].push("rho");
+	response
+		.text()
+		.then((data) => {
+			var materialsList = document.getElementById("materialsList");
+			materials = Papa.parse(data, { header: true }).data;
+			materials.forEach((m) => Object.keys(m).forEach((a) => (m[a] = a != "" ? m[a] === "1" : m[a])));
+			materials.forEach((m) => (m["properties"] = []));
+			materials.forEach((m) => {
+				var materialContainer = document.createElement("div");
+				materialContainer.className = "materialContainer";
+				var materialName = document.createElement("div");
+				materialName.className = "materialName";
+				materialName.innerHTML = m[""];
+				materialName.onclick = () => {
+					Array.from(document.getElementsByClassName("propertiesContainer")).forEach((c) => (c != propertiesContainer ? (c.style.display = "none") : {}));
+					propertiesContainer.style.display = propertiesContainer.style.display == "none" ? "flex" : "none";
+				};
+				var propertiesContainer = document.createElement("div");
+				propertiesContainer.className = "propertiesContainer";
+				propertiesContainer.style.display = "none";
+				m["properties"].push("k");
+				m["properties"].push("rho");
 
-			if (m.invariant) {
-				m["properties"].push("cp");
+				if (m.invariant) {
+					m["properties"].push("cp");
 
-				if (!selectProperties.includes("cp")) selectProperties.push("cp");
-			}
-			if (m.magnetocaloric) {
-				var url = materialLibraryURL + m[""] + "/" + "Fields.txt";
-				fetch(url)
-					.then((response) => response.text())
-					.then((data) => {
-						data.split("\n").forEach((prop) => {
-							m["properties"].push(`cp_${prop}T`);
-							if (!selectProperties.includes(`cp_${prop}T`)) selectProperties.push(`cp_${prop}T`);
-							if (!(prop == 0)) {
-								m["properties"].push(`dT_${prop}T_heating`);
-								m["properties"].push(`dT_${prop}T_cooling`);
-								if (!selectProperties.includes(`dT_${prop}T_heating`)) selectProperties.push(`dT_${prop}T_heating`);
-								if (!selectProperties.includes(`dT_${prop}T_cooling`)) selectProperties.push(`dT_${prop}T_cooling`);
-							}
+					if (!selectProperties.includes("cp")) selectProperties.push("cp");
+				}
+				if (m.magnetocaloric) {
+					var url = materialLibraryURL + m[""] + "/" + "Fields.txt";
+					fetch(url)
+						.then((response) => response.text())
+						.then((data) => {
+							data.split("\n").forEach((prop) => {
+								m["properties"].push(`cp_${prop}T`);
+								if (!selectProperties.includes(`cp_${prop}T`)) selectProperties.push(`cp_${prop}T`);
+								if (!(prop == 0)) {
+									m["properties"].push(`dT_${prop}T_heating`);
+									m["properties"].push(`dT_${prop}T_cooling`);
+									if (!selectProperties.includes(`dT_${prop}T_heating`)) selectProperties.push(`dT_${prop}T_heating`);
+									if (!selectProperties.includes(`dT_${prop}T_cooling`)) selectProperties.push(`dT_${prop}T_cooling`);
+								}
+							});
+							loadProperties(m, propertiesContainer);
 						});
-						loadProperties(m, propertiesContainer);
-					});
-			}
+				}
 
-			loadProperties(m, propertiesContainer);
+				loadProperties(m, propertiesContainer);
 
-			materialContainer.appendChild(materialName);
-			materialContainer.appendChild(propertiesContainer);
-			materialsList.appendChild(materialContainer);
-		});
-		var select = document.querySelector(".selectProperties");
-		select.onclick = () => {
-			if (chart != undefined) chart.destroy();
-			loadGraph(materials.map((m) => m[""] + "/" + select.value));
-		};
-	})
+				materialContainer.appendChild(materialName);
+				materialContainer.appendChild(propertiesContainer);
+				materialsList.appendChild(materialContainer);
+			});
+
+			var select = document.querySelector(".selectProperties");
+			select.onclick = () => {
+				if (chart != undefined) chart.destroy();
+				var value = select.value.split("_")[0];
+				var map = {
+					cp: "specificHeatCapacity",
+					rho: "density",
+					k: "thermalConductivity",
+					dT: "adiabaticTemperatureChange",
+				};
+				var minTemp = 2000;
+				var maxTemp = 0;
+				materials.forEach((m) => {
+					if (m["range"][map[value]] !== undefined || m["range"][map[value]] !== "") {
+						minTemp = Math.min(minTemp, parseInt(m["range"][map[value]].split("-")[0]));
+						maxTemp = Math.max(maxTemp, parseInt(m["range"][map[value]].split("-")[1]));
+					}
+				});
+				if (from.value !== "") minTemp = Math.round(from.value);
+				if (to.value !== "") maxTemp = Math.round(to.value);
+				loadGraph(
+					materials.map((m) => m[""] + "/" + select.value),
+					minTemp,
+					maxTemp
+				);
+			};
+		})
+		.then(() => {
+			materials.forEach((m) => {
+				fetch(materialLibraryURL + "/" + m[""] + "/" + "Ranges.txt").then((response) =>
+					response.text().then((data) => {
+						m["range"] = JSON.parse(data);
+					})
+				);
+			});
+		})
 );
 
 function loadProperties(material, propertiesContainer) {
@@ -90,18 +123,35 @@ function loadProperties(material, propertiesContainer) {
 
 			if (!button.classList.contains("activeMaterialProperty")) button.classList.add("activeMaterialProperty");
 			else button.classList.remove("activeMaterialProperty");
-			loadGraph(shownFiles);
+			var value = property.split("_")[0];
+			var map = {
+				cp: "specificHeatCapacity",
+				rho: "density",
+				k: "thermalConductivity",
+				dT: "adiabaticTemperatureChange",
+			};
+			var minTemp = 0;
+			var maxTemp = 2000;
+			if (material["range"][map[value]] !== undefined || material["range"][map[value]] !== "") {
+				minTemp = parseInt(material["range"][map[value]].split("-")[0]);
+				maxTemp = parseInt(material["range"][map[value]].split("-")[1]);
+			}
+			if (from.value !== "") minTemp = Math.round(from.value);
+			if (to.value !== "") maxTemp = Math.round(to.value);
+			loadGraph(shownFiles, minTemp, maxTemp);
 		};
 	});
 }
 
-function clearShownFiles() {
+function reset() {
+	from.value="";
+	to.value="";
 	shownFiles = [];
 	if (chart != undefined) chart.destroy();
 	document.querySelectorAll("button").forEach((button) => button.classList.remove("activeMaterialProperty"));
 }
 
-function loadGraph(names) {
+function loadGraph(names, from, to) {
 	/* 	if ((shownFiles.length == 0) & (chart !== undefined)) {
 		chart.destroy();
 		return;
@@ -151,9 +201,10 @@ function loadGraph(names) {
 					x: {
 						type: "linear",
 						position: "bottom",
+						min: from,
+						max: to,
 					},
 				},
-
 				layout: {
 					padding: {
 						left: 0,
