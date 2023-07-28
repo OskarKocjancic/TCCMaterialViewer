@@ -7,22 +7,27 @@
 }
 
 :root {
+  --black: #0D121F;
+  --deep-blue: #19223a;
+  --blue: #273459;
   --blue: #273459;
   --white: #F2F2F2;
   --red: #D93B3B;
   --yellow: #F2A71B;
   --deep-yellow: #cf8f18;
   --gray: #404B59;
+  --light-gray: #5d6e83;
 }
+
 
 body {
   min-height: 98vh;
   font-family: 'Roboto', sans-serif;
-  background-color: var(--gray);
+  background-color: var(--black);
 }
 
 canvas {
-  background-color: var(--white);
+  display: none;
 }
 
 .container {
@@ -31,44 +36,83 @@ canvas {
   min-height: 100vh;
   grid-auto-flow: row;
   grid-template-columns: 0.75fr 1.25fr 1fr;
-  grid-template-rows: 1fr 1fr 1.75fr 0.25fr;
+  grid-template-rows: 0.125fr 1.875fr 1fr 1.75fr 0.25fr;
   grid-template-areas:
-    "materialsList rightSide rightSide"
-    "materialsList rightSide rightSide"
-    "materialsList rightSide rightSide"
-    "bottomLeft rightSide rightSide";
+    "top top top"
+    "left right right"
+    "left right right"
+    "left right right"
+    "left right right";
 }
 
-.bottomLeft {
-  grid-area: bottomLeft;
+.top {
+  grid-area: top;
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  overflow: auto;
-  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   background-color: var(--blue);
-  padding: 0.5rem;
+  border: 0.125rem solid var(--deep-blue);
 }
 
-.rightSide {
-  grid-area: rightSide;
+.right {
+  grid-area: right;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0.5rem;
 }
 
-.materialsList {
-  grid-area: materialsList;
+.left {
+  background-color: var(--deep-blue);
+  grid-area: left;
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+
+.propertyCompare {
+  width: 100%;
+  background-color: var(--blue);
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
   overflow: auto;
   flex-wrap: wrap;
-  background-color: var(--blue);
   padding: 0.5rem;
+}
+
+.ranges {
+  width: 100%;
+  background-color: var(--blue);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: auto;
+  flex-wrap: wrap;
+  padding: 0.5rem;
+}
+
+.materialsList {
+  width: 100%;
+  height: 50%;
+  background-color: var(--blue);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: auto;
+  padding: 0.5rem;
+
 }
 
 .materialContainer {
@@ -97,6 +141,8 @@ canvas {
   width: 100%;
   text-align: left;
   padding: 0.125rem;
+  background-color: var(--white);
+  color: var(--gray);
 }
 
 
@@ -106,6 +152,7 @@ canvas {
   cursor: pointer;
   width: 100%;
   text-align: left;
+  font-size: 1rem;
   padding: 0.125rem;
   color: var(--white);
   background-color: var(--yellow);
@@ -114,20 +161,6 @@ canvas {
 .selectProperties:hover {
   background-color: var(--white);
   color: var(--gray);
-}
-
-.heading {
-  width: 100%;
-  text-align: left;
-  color: var(--white);
-  margin-bottom: 0.5rem;
-}
-.heading2{
-  width: 100%;
-  text-align: left;
-  color: var(--white);
-  font-size: 0.75rem;
-  margin-bottom: 0.5rem;
 }
 
 .selectProperties:focus {
@@ -150,6 +183,23 @@ canvas {
 
 }
 
+.heading {
+  width: 100%;
+  text-align: left;
+  color: var(--white);
+  margin-bottom: 0.5rem;
+}
+
+.heading2 {
+  width: 100%;
+  text-align: left;
+  color: var(--white);
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+
+
 .materialProperty:hover {
   color: var(--white);
   background-color: var(--gray);
@@ -160,22 +210,38 @@ canvas {
   background-color: var(--gray);
 }
 
-.resetButton {
+button {
   font-family: 'Roboto', sans-serif;
-  border: none;
   color: var(--white);
-  background-color: var(--deep-yellow);
-  cursor: pointer;
-  color: var(--white);
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
+  background-color: var(--yellow);
+  border: 0.125rem solid var(--deep-yellow);
+  text-align: center;
   padding: 0.25rem;
+
 }
 
-.resetButton:hover {
+button:hover {
   background-color: var(--white);
   color: var(--gray);
+}
+
+.navButton {
+  background-color: var(--blue);
+  border: none;
+  height: 28px;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}
+
+.resetButton {
+  text-align: left;
+  width: 100%;
+
+}
+
+.selectedButton {
+  background-color: var(--deep-blue);
+  border: none;
 }
 
 .propertiesContainer {
@@ -187,39 +253,21 @@ canvas {
   width: 100%;
 }
 
-input{
+input {
   border: none;
-  cursor: pointer;
   width: 100%;
   text-align: left;
   padding: 0.125rem;
   color: var(--white);
-  background-color: var(--yellow);
+  background-color: var(--white);
+  color: var(--black);
   margin: 0.125rem;
 }
+
 input:focus {
   outline: none !important;
 }
 
 ::-webkit-scrollbar {
   display: none;
-}
-
-nav {
-  background-color: var(--blue);
-  color: var(--white);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem;
-}
-
-nav a {
-  color: var(--white);
-  text-decoration: none;
-  margin: 0 0.5rem;
-}
-
-nav a:hover {
-  color: var(--yellow);
 }

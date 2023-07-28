@@ -2,17 +2,21 @@ var CORSproxy = "https://corsproxy.io/?";
 var materialLibraryURL = CORSproxy + "http://materials.tccbuilder.org/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
+const canvas = document.getElementById("myChart");
+const ctx = canvas.getContext("2d");
 var urlFlags = materialLibraryURL + "/materials_flags.csv";
 var materials = [];
 var chart;
 var labels = [];
 var shownFiles = [];
 var selectProperties = ["k", "rho"];
+var whiteColor = getComputedStyle(document.documentElement).getPropertyValue("--white");
+var datasets;
 fetch(urlFlags).then((response) =>
 	response
 		.text()
 		.then((data) => {
-			var materialsList = document.getElementById("materialsList");
+			var materialsList = document.querySelector(".materialsList");
 			materials = Papa.parse(data, { header: true }).data;
 			materials.forEach((m) => Object.keys(m).forEach((a) => (m[a] = a != "" ? m[a] === "1" : m[a])));
 			materials.forEach((m) => (m["properties"] = []));
@@ -77,8 +81,8 @@ fetch(urlFlags).then((response) =>
 				var maxTemp = 0;
 				materials.forEach((m) => {
 					if (m["range"][map[value]] !== undefined || m["range"][map[value]] !== "") {
-						minTemp = Math.min(minTemp, parseInt(m["range"][map[value]].split("-")[0]));
-						maxTemp = Math.max(maxTemp, parseInt(m["range"][map[value]].split("-")[1]));
+						minTemp = Math.min(minTemp, parseInt(m["range"][map[value].split("-")[0]]));
+						maxTemp = Math.max(maxTemp, parseInt(m["range"][map[value].split("-")[1]]));
 					}
 				});
 				if (from.value !== "") minTemp = Math.round(from.value);
@@ -136,16 +140,98 @@ function loadProperties(material, propertiesContainer) {
 				minTemp = parseInt(material["range"][map[value]].split("-")[0]);
 				maxTemp = parseInt(material["range"][map[value]].split("-")[1]);
 			}
-			if (from.value !== "") minTemp = Math.round(from.value);
-			if (to.value !== "") maxTemp = Math.round(to.value);
+
 			loadGraph(shownFiles, minTemp, maxTemp);
 		};
 	});
 }
+function applyRange() {
+	const fromValue = from.value,
+		toValue = to.value;
+	const regex = /^\d+$/;
+
+	minTemp = regex.test(fromValue) ? Math.round(parseFloat(fromValue)) : 0;
+	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
+
+	console.log(regex, minTemp, maxTemp);
+	if (chart != undefined) chart.destroy();
+	chart = new Chart(ctx, {
+		type: "line",
+		data: {
+			labels: labels,
+			datasets: datasets,
+		},
+		options: {
+			elements: {
+				point: {
+					radius: 0,
+				},
+			},
+			scales: {
+				x: {
+					grid: {
+						color: whiteColor,
+					},
+					ticks: {
+						color: whiteColor,
+					},
+					type: "linear",
+					position: "bottom",
+					min: minTemp,
+					max: maxTemp,
+					title: {
+						display: true,
+						text: "Temperature (K)",
+						color: whiteColor,
+					},
+				},
+
+				y: {
+					grid: {
+						color: whiteColor,
+					},
+					ticks: {
+						color: whiteColor,
+					},
+				},
+			},
+			layout: {
+				padding: {
+					left: 0,
+				},
+			},
+			plugins: {
+				legend: {
+					align: "start",
+					position: "right",
+					display: true,
+					labels: {
+						color: whiteColor,
+					},
+				},
+				zoom: {
+					limits: {
+						x: { min: "original", max: "original" },
+						y: { min: "original", max: "original" },
+					},
+					zoom: {
+						wheel: {
+							enabled: true,
+						},
+						pinch: {
+							enabled: true,
+						},
+						mode: "xy",
+					},
+				},
+			},
+		},
+	});
+}
 
 function reset() {
-	from.value="";
-	to.value="";
+	from.value = "";
+	to.value = "";
 	shownFiles = [];
 	if (chart != undefined) chart.destroy();
 	document.querySelectorAll("button").forEach((button) => button.classList.remove("activeMaterialProperty"));
@@ -156,9 +242,7 @@ function loadGraph(names, from, to) {
 		chart.destroy();
 		return;
 	} */
-	const ctx = document.getElementById("myChart").getContext("2d");
-
-	const datasets = names.map((name) => {
+	datasets = names.map((name) => {
 		const url = materialLibraryURL + name + ".txt";
 		return fetch(url)
 			.then((response) => response.text())
@@ -182,14 +266,14 @@ function loadGraph(names, from, to) {
 				};
 			});
 	});
-	Promise.all(datasets).then((datasets) => {
-		datasets = datasets.filter((d) => d.data.length > 1);
+	Promise.all(datasets).then((d) => {
+		datasets = d.filter((p) => p.data.length > 1);
 		if (chart != undefined) chart.destroy();
 		chart = new Chart(ctx, {
 			type: "line",
 			data: {
 				labels: labels,
-				datasets: datasets,
+				datasets: d,
 			},
 			options: {
 				elements: {
@@ -199,10 +283,30 @@ function loadGraph(names, from, to) {
 				},
 				scales: {
 					x: {
+						grid: {
+							color: whiteColor,
+						},
+						ticks: {
+							color: whiteColor,
+						},
 						type: "linear",
 						position: "bottom",
 						min: from,
 						max: to,
+						title: {
+							display: true,
+							text: "Temperature (K)",
+							color: whiteColor,
+						},
+					},
+
+					y: {
+						grid: {
+							color: whiteColor,
+						},
+						ticks: {
+							color: whiteColor,
+						},
 					},
 				},
 				layout: {
@@ -211,6 +315,14 @@ function loadGraph(names, from, to) {
 					},
 				},
 				plugins: {
+					legend: {
+						align: "start",
+						position: "right",
+						display: true,
+						labels: {
+							color: whiteColor,
+						},
+					},
 					zoom: {
 						limits: {
 							x: { min: "original", max: "original" },
@@ -229,6 +341,7 @@ function loadGraph(names, from, to) {
 				},
 			},
 		});
+		canvas.style.display = "block";
 	});
 }
 
@@ -239,4 +352,19 @@ function getRandomColor() {
 		color += letters[Math.floor(Math.random() * 16)];
 	}
 	return color;
+}
+
+function showCompare() {
+	document.querySelector(".materialsList").style.display = "none";
+	document.querySelector(".propertyCompare").style.display = "flex";
+	document.getElementById("comparisonButton").classList.add("selectedButton");
+	document.getElementById("manualButton").classList.remove("selectedButton");
+	reset();
+}
+function showManual() {
+	document.querySelector(".materialsList").style.display = "flex";
+	document.querySelector(".propertyCompare").style.display = "none";
+	document.getElementById("comparisonButton").classList.remove("selectedButton");
+	document.getElementById("manualButton").classList.add("selectedButton");
+	reset();
 }
