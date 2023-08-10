@@ -7,18 +7,24 @@
 }
 
 :root {
-  --black: #0D121F;
-  --deep-blue: #19223a;
-  --blue: #273459;
-  --blue: #273459;
+  --black: #181C24;
+  --blue: #2f3847;
+  --deep-blue: #384354;
   --white: #F2F2F2;
   --red: #D93B3B;
-  --yellow: #F2A71B;
-  --deep-yellow: #cf8f18;
-  --gray: #404B59;
-  --light-gray: #5d6e83;
+  --deep-red: #8d2424;
+  --yellow: #e7a217;
+  --deep-yellow: #e7a117;
 }
 
+
+/* utility classes */
+.flex-start {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  flex-direction: row;
+}
 
 body {
   font-family: 'Roboto', sans-serif;
@@ -51,7 +57,7 @@ canvas {
   align-items: center;
   justify-content: space-between;
   background-color: var(--blue);
-  border: 0.125rem solid var(--deep-blue);
+
 }
 
 .right {
@@ -111,7 +117,7 @@ canvas {
   justify-content: flex-start;
   overflow: scroll;
   padding: 0.5rem;
-  
+
 
 }
 
@@ -132,7 +138,7 @@ canvas {
 
 .materialName:hover {
   background-color: var(--white);
-  color: var(--gray);
+  color: var(--black);
 }
 
 .materialProperty {
@@ -142,7 +148,7 @@ canvas {
   text-align: left;
   padding: 0.125rem;
   background-color: var(--white);
-  color: var(--gray);
+  color: var(--black);
 }
 
 
@@ -160,7 +166,7 @@ canvas {
 
 .selectProperties:hover {
   background-color: var(--white);
-  color: var(--gray);
+  color: var(--black);
 }
 
 .selectProperties:focus {
@@ -175,13 +181,9 @@ canvas {
   text-align: left;
   padding: 0.125rem;
   background-color: var(--white);
-  color: var(--gray);
+  color: var(--black);
 }
 
-.selectProperties option:hover {
-  box-shadow: 0 0 10px 100px #000 inset;
-
-}
 
 .heading {
   width: 100%;
@@ -202,46 +204,52 @@ canvas {
 
 .materialProperty:hover {
   color: var(--white);
-  background-color: var(--gray);
+  background-color: var(--deep-blue);
 }
 
 .activeMaterialProperty {
   color: var(--white);
-  background-color: var(--gray);
+  background-color: var(--deep-blue);
 }
 
 button {
   font-family: 'Roboto', sans-serif;
   color: var(--white);
   background-color: var(--yellow);
-  border: 0.125rem solid var(--deep-yellow);
+  border: 0.125 solid var(--deep-yellow);
   text-align: center;
+  line-height: 100%;
   padding: 0.25rem;
-
+  cursor: pointer;
 }
 
 button:hover {
   background-color: var(--white);
-  color: var(--gray);
+  color: var(--black);
 }
 
 .navButton {
   background-color: var(--blue);
-  border: none;
   height: 28px;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+
+}
+
+.applyRangeButton {
+  height: 28px;
+  margin-top: 0.5rem;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
 }
 
 .resetButton {
-  text-align: left;
-  width: 100%;
-
+  background-color: var(--red);
+  border-color: var(--deep-red);
 }
 
 .selectedButton {
   background-color: var(--deep-blue);
-  border: none;
 }
 
 .propertiesContainer {
@@ -258,10 +266,8 @@ input {
   width: 100%;
   text-align: left;
   padding: 0.125rem;
-  color: var(--white);
   background-color: var(--white);
   color: var(--black);
-  margin: 0.125rem;
 }
 
 input:focus {

@@ -1,6 +1,6 @@
 var CORSproxy = "https://corsproxy.io/?";
 var materialLibraryURL = CORSproxy + "http://materials.tccbuilder.org/";
-//materialLibraryURL = "http://127.0.0.1:8888/";
+materialLibraryURL = "http://127.0.0.1:8888/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
 const canvas = document.getElementById("myChart");
@@ -23,7 +23,6 @@ fetch(urlFlags).then((response) =>
 		materials.forEach((m) => {
 			Object.keys(m).forEach((a) => (a !== "name" ? (m[a] = a != "" ? m[a] === "1" : m[a]) : a));
 			m.properties = ["rho"];
-			console.log(m);
 			fetch(materialLibraryURL + m.name + "/appInfo/" + "info.json").then((response) =>
 				response.text().then((data) => {
 					Object.assign(m, JSON.parse(data));
@@ -33,14 +32,13 @@ fetch(urlFlags).then((response) =>
 			if (m.invariant) {
 				m.properties.push("cp");
 				m.properties.push(`k`);
-
-
 			} else if (m.magnetocaloric || m.barocaloric || m.elastocaloric || m.electrocaloric) {
 				var url = materialLibraryURL + m.name + "/appInfo/" + "Fields.txt";
 				fetch(url)
 					.then((response) => response.text())
 					.then((data) => {
 						data.split("\n").forEach((field) => {
+							if (field === "") return;
 							if (m.cpThysteresis) {
 								m.properties.push(`cp_${field}T_heating`);
 								m.properties.push(`cp_${field}T_cooling`);
@@ -55,17 +53,18 @@ fetch(urlFlags).then((response) =>
 									m.properties.push(`dT_${field}T`);
 								}
 							}
-							if (m.kThysteresis) {
-								m.properties.push(`k_heating`);
-								m.properties.push(`k_cooling`);
-							} else {
-								m.properties.push(`k`);
-							}
 						});
+						if (m.kThysteresis) {
+							m.properties.push(`k_heating`);
+							m.properties.push(`k_cooling`);
+						} else {
+							m.properties.push(`k`);
+						}
+						m.properties.sort();
 						m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
 						loadProperties(m, propertiesContainer);
 					});
-			}else{
+			} else {
 				if (m.kThysteresis) {
 					m.properties.push(`k_heating`);
 					m.properties.push(`k_cooling`);
@@ -231,15 +230,21 @@ function loadGraph(names) {
 			.then((response) => response.text())
 			.then((data) => {
 				var dataPoints = data.trim().split("\n");
-				dataPoints = dataPoints.map((a) => parseInt(a));
+				dataPoints = dataPoints.map((a) => parseFloat(a));
 				var newDataPoints = [];
-				for (let i = 0; i < dataPoints.length; i++) {
-					if (i % 10 == 0) {
-						newDataPoints.push(dataPoints[i]);
-						labels.push(i * 0.1);
+				if (dataPoints.length == 1) {
+					for (let i = 0; i < maxTemp; i++) {
+						newDataPoints.push(dataPoints[0]);
+						labels.push(i);
+					}
+				} else {
+					for (let i = 0; i < dataPoints.length; i++) {
+						if (i % 10 == 0) {
+							newDataPoints.push(dataPoints[i]);
+							labels.push(i * 0.1);
+						}
 					}
 				}
-
 				var material = materials.find((m) => m.name === name.split("/")[0]);
 				var value = name.split("/")[2].split("_")[0];
 				var map = {
@@ -249,8 +254,8 @@ function loadGraph(names) {
 					dT: "adiabaticTemperatureChange",
 				};
 				if (material.ranges[map[value]] !== undefined || material.ranges[map[value]] !== "") {
-					var min = parseInt(material.ranges[map[value]].split("-")[0]);
-					var max = parseInt(material.ranges[map[value]].split("-")[1]);
+					var min = parseFloat(material.ranges[map[value]].split("-")[0]);
+					var max = parseFloat(material.ranges[map[value]].split("-")[1]);
 					for (let i = 0; i < newDataPoints.length; i++) {
 						if (!(i > min && i < max)) newDataPoints[i] = null;
 					}

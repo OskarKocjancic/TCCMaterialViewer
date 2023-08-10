@@ -10,11 +10,11 @@
 	<body>
 		<div class="container">
 			<div class="top">
-				<div>
+				<div class="flex-start">
 					<button class="navButton selectedButton" id="comparisonButton" onclick="showCompare()">Comparison mode</button>
 					<button class="navButton" id="manualButton" onclick="showManual()">Manual mode</button>
 				</div>
-				<button class="navButton" onclick="reset()">Reset</button>
+				<button class="navButton resetButton" onclick="reset()">Reset</button>
 			</div>
 			<div class="left">
 				<div class="propertyCompare">
@@ -34,7 +34,7 @@
 					<input id="from" type="text" />
 					<div class="heading2">To:</div>
 					<input id="to" type="text" />
-					<button class="navButton" onclick="applyRange()">Apply</button>
+					<button class="applyRangeButton" onclick="applyRange()">Apply</button>
 				</div>
 			</div>
 			<div class="right">
