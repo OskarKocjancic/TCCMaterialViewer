@@ -60,7 +60,6 @@ fetch(urlFlags).then((response) =>
 						}
 						m.properties.sort();
 						m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
-						loadProperties(m, propertiesContainer);
 					} else {
 						if (m.kThysteresis) {
 							m.properties.push(`k_heating`);
@@ -69,28 +68,29 @@ fetch(urlFlags).then((response) =>
 							m.properties.push(`k`);
 						}
 					}
+				})
+				.then(() => {
+					var materialContainer = document.createElement("div");
+					materialContainer.className = "materialContainer";
+					var materialName = document.createElement("div");
+					materialName.className = "materialName";
+					materialName.innerHTML = m["name"];
+					materialName.onclick = () => {
+						Array.from(document.getElementsByClassName("propertiesContainer")).forEach((c) => (c != propertiesContainer ? (c.style.display = "none") : {}));
+						propertiesContainer.style.display = propertiesContainer.style.display == "none" ? "flex" : "none";
+					};
+
+					var propertiesContainer = document.createElement("div");
+					propertiesContainer.className = "propertiesContainer";
+					propertiesContainer.style.display = "none";
+
+					materialContainer.appendChild(materialName);
+					materialContainer.appendChild(propertiesContainer);
+					materialsList.appendChild(materialContainer);
+
+					m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
+					loadProperties(m, propertiesContainer);
 				});
-
-			var materialContainer = document.createElement("div");
-			materialContainer.className = "materialContainer";
-			var materialName = document.createElement("div");
-			materialName.className = "materialName";
-			materialName.innerHTML = m["name"];
-			materialName.onclick = () => {
-				Array.from(document.getElementsByClassName("propertiesContainer")).forEach((c) => (c != propertiesContainer ? (c.style.display = "none") : {}));
-				propertiesContainer.style.display = propertiesContainer.style.display == "none" ? "flex" : "none";
-			};
-
-			var propertiesContainer = document.createElement("div");
-			propertiesContainer.className = "propertiesContainer";
-			propertiesContainer.style.display = "none";
-
-			materialContainer.appendChild(materialName);
-			materialContainer.appendChild(propertiesContainer);
-			materialsList.appendChild(materialContainer);
-
-			m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
-			loadProperties(m, propertiesContainer);
 		});
 
 		var select = document.querySelector(".selectProperties");
@@ -104,6 +104,7 @@ function loadProperties(material, propertiesContainer) {
 	var select = document.querySelector(".selectProperties");
 	select.innerHTML = "";
 	selectProperties.forEach((p) => {
+		console.log(p);
 		var option = document.createElement("option");
 		option.value = p;
 		option.innerHTML = p;
