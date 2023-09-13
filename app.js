@@ -38,17 +38,17 @@ fetch(urlFlags).then((response) =>
 						m.fields.forEach((field) => {
 							if (field === "") return;
 							if (m.cpThysteresis) {
-								m.properties.push(`cp_${field}T_heating`);
-								m.properties.push(`cp_${field}T_cooling`);
+								m.properties.push(`cp_${field.toFixed(1)}T_heating`);
+								m.properties.push(`cp_${field.toFixed(1)}T_cooling`);
 							} else {
-								m.properties.push(`cp_${field}T`);
+								m.properties.push(`cp_${field.toFixed(1)}T`);
 							}
 							if (field != 0) {
 								if (m.dTThysteresis) {
-									m.properties.push(`dT_${field}T_heating`);
-									m.properties.push(`dT_${field}T_cooling`);
+									m.properties.push(`dT_${field.toFixed(1)}T_heating`);
+									m.properties.push(`dT_${field.toFixed(1)}T_cooling`);
 								} else {
-									m.properties.push(`dT_${field}T`);
+									m.properties.push(`dT_${field.toFixed(1)}T`);
 								}
 							}
 						});
