@@ -23,21 +23,19 @@ fetch(urlFlags).then((response) =>
 		materials.forEach((m) => {
 			Object.keys(m).forEach((a) => (a !== "name" ? (m[a] = a != "" ? m[a] === "1" : m[a]) : a));
 			m.properties = ["rho"];
-			fetch(materialLibraryURL + m.name + "/appInfo/" + "info.json").then((response) =>
-				response.text().then((data) => {
-					Object.assign(m, JSON.parse(data));
-				})
-			);
 			m.color = getRandomColor();
-			if (m.invariant) {
-				m.properties.push("cp");
-				m.properties.push(`k`);
-			} else if (m.magnetocaloric || m.barocaloric || m.elastocaloric || m.electrocaloric) {
-				var url = materialLibraryURL + m.name + "/appInfo/" + "Fields.txt";
-				fetch(url)
-					.then((response) => response.text())
-					.then((data) => {
-						data.split("\n").forEach((field) => {
+			fetch(materialLibraryURL + m.name + "/appInfo/" + "info.json")
+				.then((response) =>
+					response.text().then((data) => {
+						Object.assign(m, JSON.parse(data));
+					})
+				)
+				.then(() => {
+					if (m.invariant) {
+						m.properties.push("cp");
+						m.properties.push(`k`);
+					} else if (m.magnetocaloric || m.barocaloric || m.elastocaloric || m.electrocaloric) {
+						m.fields.forEach((field) => {
 							if (field === "") return;
 							if (m.cpThysteresis) {
 								m.properties.push(`cp_${field}T_heating`);
@@ -63,15 +61,16 @@ fetch(urlFlags).then((response) =>
 						m.properties.sort();
 						m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
 						loadProperties(m, propertiesContainer);
-					});
-			} else {
-				if (m.kThysteresis) {
-					m.properties.push(`k_heating`);
-					m.properties.push(`k_cooling`);
-				} else {
-					m.properties.push(`k`);
-				}
-			}
+					} else {
+						if (m.kThysteresis) {
+							m.properties.push(`k_heating`);
+							m.properties.push(`k_cooling`);
+						} else {
+							m.properties.push(`k`);
+						}
+					}
+				});
+
 			var materialContainer = document.createElement("div");
 			materialContainer.className = "materialContainer";
 			var materialName = document.createElement("div");
