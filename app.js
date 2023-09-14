@@ -104,7 +104,6 @@ function loadProperties(material, propertiesContainer) {
 	var select = document.querySelector(".selectProperties");
 	select.innerHTML = "";
 	selectProperties.forEach((p) => {
-		console.log(p);
 		var option = document.createElement("option");
 		option.value = p;
 		option.innerHTML = p;
@@ -173,6 +172,13 @@ function applyRange() {
 						color: whiteColor,
 					},
 					ticks: {
+						color: whiteColor,
+					},
+					type: "linear",
+					position: "left",
+					title: {
+						display: true,
+						text: getUnit(),
 						color: whiteColor,
 					},
 				},
@@ -311,6 +317,13 @@ function loadGraph(names) {
 							color: whiteColor,
 						},
 						min: 0,
+						type: "linear",
+						position: "left",
+						title: {
+							display: true,
+							text: getUnit(),
+							color: whiteColor,
+						},
 					},
 				},
 				layout: {
@@ -347,6 +360,25 @@ function loadGraph(names) {
 		});
 		canvas.style.display = "block";
 	});
+}
+
+function getUnit() {
+	let dataset = datasets[datasets.length - 1];
+	console.log(dataset);
+	let file = dataset.label.split(" ")[2];
+	file = file.split("_")[0];
+	switch (file) {
+		case "k":
+			return "W/(mK)";
+		case "cp":
+			return "J/(kgK)";
+		case "rho":
+			return "kg/m³";
+		case "dT":
+			return "K³";
+		default:
+			return "unknown unit";
+	}
 }
 
 function getRandomColor() {
