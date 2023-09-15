@@ -15,6 +15,7 @@ var whiteColor = getComputedStyle(document.documentElement).getPropertyValue("--
 var datasets;
 var minTemp = 0;
 var maxTemp = 2000;
+var currentShownProperty = "";
 
 fetch(urlFlags).then((response) =>
 	response.text().then((data) => {
@@ -116,12 +117,16 @@ function loadProperties(material, propertiesContainer) {
 		button.className = "materialProperty";
 		propertiesContainer.appendChild(button);
 		button.onclick = () => {
+			if (currentShownProperty != "" && currentShownProperty != property.split("_")[0]) return;
+			else currentShownProperty = property.split("_")[0];
 			var name = material.name + "/appInfo/" + property;
-			if (shownFiles.includes(name)) shownFiles = shownFiles.filter((m) => m !== name);
-			else shownFiles.push(name);
-
 			if (!button.classList.contains("activeMaterialProperty")) button.classList.add("activeMaterialProperty");
 			else button.classList.remove("activeMaterialProperty");
+			if (shownFiles.includes(name)) {
+				shownFiles = shownFiles.filter((m) => m !== name);
+				if (shownFiles.length == 0) reset();
+			} else shownFiles.push(name);
+
 			loadGraph(shownFiles);
 		};
 	});
@@ -136,7 +141,91 @@ function applyRange() {
 
 	console.log(regex, minTemp, maxTemp);
 	if (chart != undefined) chart.destroy();
-	chart = new Chart(ctx, {
+
+	chart = generateChart();
+
+	// 	type: "line",
+	// 	data: {
+	// 		labels: labels,
+	// 		datasets: datasets,
+	// 	},
+	// 	options: {
+	// 		elements: {
+	// 			point: {
+	// 				radius: 0,
+	// 			},
+	// 		},
+	// 		scales: {
+	// 			x: {
+	// 				grid: {
+	// 					color: whiteColor,
+	// 				},
+	// 				ticks: {
+	// 					color: whiteColor,
+	// 				},
+	// 				type: "linear",
+	// 				position: "bottom",
+	// 				min: minTemp,
+	// 				max: maxTemp,
+	// 				title: {
+	// 					display: true,
+	// 					text: "Temperature (K)",
+	// 					color: whiteColor,
+	// 				},
+	// 			},
+
+	// 			y: {
+	// 				grid: {
+	// 					color: whiteColor,
+	// 				},
+	// 				ticks: {
+	// 					color: whiteColor,
+	// 				},
+	// 				type: "linear",
+	// 				position: "left",
+	// 				title: {
+	// 					display: true,
+	// 					text: getUnit(),
+	// 					color: whiteColor,
+	// 				},
+	// 			},
+	// 		},
+	// 		layout: {
+	// 			padding: {
+	// 				left: 0,
+	// 			},
+	// 		},
+	// 		plugins: {
+	// 			legend: {
+	// 				align: "start",
+	// 				position: "right",
+	// 				display: true,
+	// 				labels: {
+	// 					color: whiteColor,
+	// 				},
+	// 			},
+	// 			zoom: {
+	// 				limits: {
+	// 					x: { min: "original", max: "original" },
+	// 					y: { min: "original", max: "original" },
+	// 				},
+	// 				zoom: {
+	// 					wheel: {
+	// 						enabled: true,
+	// 					},
+	// 					pinch: {
+	// 						enabled: true,
+	// 					},
+	// 					mode: "xy",
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// });
+}
+
+function generateChart() {
+	return new Chart(ctx, {
 		type: "line",
 		data: {
 			labels: labels,
@@ -155,6 +244,7 @@ function applyRange() {
 					},
 					ticks: {
 						color: whiteColor,
+
 					},
 					type: "linear",
 					position: "bottom",
@@ -164,6 +254,10 @@ function applyRange() {
 						display: true,
 						text: "Temperature (K)",
 						color: whiteColor,
+						padding : 36,
+						font: {
+							size: 18, // Adjust the font size as needed
+						},
 					},
 				},
 
@@ -174,12 +268,17 @@ function applyRange() {
 					ticks: {
 						color: whiteColor,
 					},
+					min: 0,
 					type: "linear",
 					position: "left",
 					title: {
 						display: true,
 						text: getUnit(),
 						color: whiteColor,
+						padding : 36,
+						font: {
+							size: 18, // Adjust the font size as needed
+						},
 					},
 				},
 			},
@@ -220,6 +319,7 @@ function applyRange() {
 function reset() {
 	from.value = "";
 	to.value = "";
+	currentShownProperty = "";
 	shownFiles = [];
 	if (chart != undefined) chart.destroy();
 	document.querySelectorAll("button").forEach((button) => button.classList.remove("activeMaterialProperty"));
@@ -267,115 +367,38 @@ function loadGraph(names) {
 					}
 				}
 				return {
-					label: name.replace("/appInfo/", " - "),
+					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
 					data: newDataPoints,
 					fill: false,
 					borderColor: material.color,
 					tension: 0.1,
+					value: value,
 				};
 			});
 	});
 	Promise.all(datasets).then((d) => {
 		datasets = d.filter((p) => p.data.length > 1);
 		if (chart != undefined) chart.destroy();
-		chart = new Chart(ctx, {
-			type: "line",
-			data: {
-				labels: labels,
-				datasets: datasets,
-			},
-			options: {
-				elements: {
-					point: {
-						radius: 0,
-					},
-				},
-				scales: {
-					x: {
-						grid: {
-							color: whiteColor,
-						},
-						ticks: {
-							color: whiteColor,
-						},
-						type: "linear",
-						position: "bottom",
-						min: minTemp,
-						max: maxTemp,
-						title: {
-							display: true,
-							text: "Temperature (K)",
-							color: whiteColor,
-						},
-					},
-
-					y: {
-						grid: {
-							color: whiteColor,
-						},
-						ticks: {
-							color: whiteColor,
-						},
-						min: 0,
-						type: "linear",
-						position: "left",
-						title: {
-							display: true,
-							text: getUnit(),
-							color: whiteColor,
-						},
-					},
-				},
-				layout: {
-					padding: {
-						left: 0,
-					},
-				},
-				plugins: {
-					legend: {
-						align: "start",
-						position: "right",
-						display: true,
-						labels: {
-							color: whiteColor,
-						},
-					},
-					zoom: {
-						limits: {
-							x: { min: "original", max: "original" },
-							y: { min: "original", max: "original" },
-						},
-						zoom: {
-							wheel: {
-								enabled: true,
-							},
-							pinch: {
-								enabled: true,
-							},
-							mode: "xy",
-						},
-					},
-				},
-			},
-		});
+		chart = generateChart();
 		canvas.style.display = "block";
 	});
 }
 
 function getUnit() {
 	let dataset = datasets[datasets.length - 1];
-	console.log(dataset);
-	let file = dataset.label.split(" ")[2];
-	file = file.split("_")[0];
-	switch (file) {
+	if (dataset == undefined) return;
+	console.log(dataset, currentShownProperty, shownFiles);
+	/* 	let file = dataset.label.split(" ")[2];
+	file = file.split("_")[0] */
+	switch (dataset.value) {
 		case "k":
-			return "W/(mK)";
+			return "Thermal Conductivity (W/(mK))";
 		case "cp":
-			return "J/(kgK)";
+			return "Specific Heat Capacity (J/(kgK))";
 		case "rho":
-			return "kg/m³";
+			return "Density (kg/m³)";
 		case "dT":
-			return "K³";
+			return "Adiabatic Temperature Change (K)";
 		default:
 			return "unknown unit";
 	}
