@@ -1,6 +1,6 @@
 var CORSproxy = "https://corsproxy.io/?";
 var materialLibraryURL = CORSproxy + "http://materials.tccbuilder.org/";
-//materialLibraryURL = "http://127.0.0.1:8888/";
+materialLibraryURL = "TCCMaterialLibrary/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
 const canvas = document.getElementById("myChart");
@@ -33,26 +33,35 @@ fetch(urlFlags).then((response) =>
 				)
 				.then(() => {
 					if (m.invariant) {
-						m.properties.push("cp");
+						m.properties.push(`cp`);
 						m.properties.push(`k`);
 					} else if (m.magnetocaloric || m.barocaloric || m.elastocaloric || m.electrocaloric) {
 						m.fields.forEach((field) => {
 							if (field === "") return;
-							if (m.cpThysteresis) {
-								m.properties.push(`cp_${field.toFixed(1)}T_heating`);
-								m.properties.push(`cp_${field.toFixed(1)}T_cooling`);
-							} else {
-								m.properties.push(`cp_${field.toFixed(1)}T`);
-							}
-							if (field != 0) {
-								if (m.dTThysteresis) {
-									m.properties.push(`dT_${field.toFixed(1)}T_heating`);
-									m.properties.push(`dT_${field.toFixed(1)}T_cooling`);
+							field = m.electrocaloric ? field : field.toFixed(1);
+							let unit = m.magnetocaloric ? "T" : m.electrocaloric ? "MVm" : "kbar";
+							if (m.cpFields)
+								if (m.cpThysteresis) {
+									m.properties.push(`cp_${field}${unit}_heating`);
+									m.properties.push(`cp_${field}${unit}_cooling`);
 								} else {
-									m.properties.push(`dT_${field.toFixed(1)}T`);
+									m.properties.push(`cp_${field}${unit}`);
 								}
+							if (field != 0) {
+								// LEFT OUT FOR NOW
+								// if (m.dTThysteresis) {
+								// 	m.properties.push(`dT_${field}${unit}_heating`);
+								// 	m.properties.push(`dT_${field}${unit}_cooling`);
+								// } else {
+								// 	m.properties.push(`dT_${field}${unit}`);
+								// }
+
+								m.properties.push(`dT_${field}${unit}_apply`);
+								m.properties.push(`dT_${field}${unit}_remove`);
 							}
 						});
+						if (!m.cpFields) m.properties.push(`cp`);
+
 						if (m.kThysteresis) {
 							m.properties.push(`k_heating`);
 							m.properties.push(`k_cooling`);
@@ -104,6 +113,7 @@ fetch(urlFlags).then((response) =>
 function loadProperties(material, propertiesContainer) {
 	var select = document.querySelector(".selectProperties");
 	select.innerHTML = "";
+	selectProperties.sort();
 	selectProperties.forEach((p) => {
 		var option = document.createElement("option");
 		option.value = p;
@@ -143,85 +153,6 @@ function applyRange() {
 	if (chart != undefined) chart.destroy();
 
 	chart = generateChart();
-
-	// 	type: "line",
-	// 	data: {
-	// 		labels: labels,
-	// 		datasets: datasets,
-	// 	},
-	// 	options: {
-	// 		elements: {
-	// 			point: {
-	// 				radius: 0,
-	// 			},
-	// 		},
-	// 		scales: {
-	// 			x: {
-	// 				grid: {
-	// 					color: whiteColor,
-	// 				},
-	// 				ticks: {
-	// 					color: whiteColor,
-	// 				},
-	// 				type: "linear",
-	// 				position: "bottom",
-	// 				min: minTemp,
-	// 				max: maxTemp,
-	// 				title: {
-	// 					display: true,
-	// 					text: "Temperature (K)",
-	// 					color: whiteColor,
-	// 				},
-	// 			},
-
-	// 			y: {
-	// 				grid: {
-	// 					color: whiteColor,
-	// 				},
-	// 				ticks: {
-	// 					color: whiteColor,
-	// 				},
-	// 				type: "linear",
-	// 				position: "left",
-	// 				title: {
-	// 					display: true,
-	// 					text: getUnit(),
-	// 					color: whiteColor,
-	// 				},
-	// 			},
-	// 		},
-	// 		layout: {
-	// 			padding: {
-	// 				left: 0,
-	// 			},
-	// 		},
-	// 		plugins: {
-	// 			legend: {
-	// 				align: "start",
-	// 				position: "right",
-	// 				display: true,
-	// 				labels: {
-	// 					color: whiteColor,
-	// 				},
-	// 			},
-	// 			zoom: {
-	// 				limits: {
-	// 					x: { min: "original", max: "original" },
-	// 					y: { min: "original", max: "original" },
-	// 				},
-	// 				zoom: {
-	// 					wheel: {
-	// 						enabled: true,
-	// 					},
-	// 					pinch: {
-	// 						enabled: true,
-	// 					},
-	// 					mode: "xy",
-	// 				},
-	// 			},
-	// 		},
-	// 	},
-	// });
 }
 
 function generateChart() {
@@ -244,7 +175,6 @@ function generateChart() {
 					},
 					ticks: {
 						color: whiteColor,
-
 					},
 					type: "linear",
 					position: "bottom",
@@ -254,7 +184,7 @@ function generateChart() {
 						display: true,
 						text: "Temperature (K)",
 						color: whiteColor,
-						padding : 36,
+						padding: 36,
 						font: {
 							size: 18, // Adjust the font size as needed
 						},
@@ -275,7 +205,7 @@ function generateChart() {
 						display: true,
 						text: getUnit(),
 						color: whiteColor,
-						padding : 36,
+						padding: 36,
 						font: {
 							size: 18, // Adjust the font size as needed
 						},
@@ -360,8 +290,10 @@ function loadGraph(names) {
 					dT: "adiabaticTemperatureChange",
 				};
 				if (material.ranges[map[value]] !== undefined || material.ranges[map[value]] !== "") {
-					var min = parseFloat(material.ranges[map[value]].split("-")[0]);
-					var max = parseFloat(material.ranges[map[value]].split("-")[1]);
+					let rangeString= material.ranges[map[value]];
+					var min = rangeString === "" ? parseFloat(rangeString.split("-")[0]) : 0;
+					var max = rangeString === "" ? parseFloat(rangeString.split("-")[1]) : 2000;
+
 					for (let i = 0; i < newDataPoints.length; i++) {
 						if (!(i > min && i < max)) newDataPoints[i] = null;
 					}
