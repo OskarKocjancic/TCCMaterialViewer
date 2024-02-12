@@ -1,0 +1,3 @@
+[submodule "TCCMaterialLibrary"]
+	path = TCCMaterialLibrary
+	url = https://github.com/katya5226/TCCMaterialLibrary
