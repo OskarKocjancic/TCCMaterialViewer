@@ -38,7 +38,7 @@ fetch(urlFlags).then((response) =>
 					} else if (m.magnetocaloric || m.barocaloric || m.elastocaloric || m.electrocaloric) {
 						m.fields.forEach((field) => {
 							if (field === "") return;
-							field = m.electrocaloric ? field : m.magnetocaloric ? field.toFixed(2) : field.toFixed(1);
+							field = m.electrocaloric ? field : field.toFixed(2);
 							let unit = m.magnetocaloric ? "T" : m.electrocaloric ? "MVm" : "kbar";
 							if (m.cpFields)
 								if (m.cpThysteresis) {
@@ -83,7 +83,6 @@ fetch(urlFlags).then((response) =>
 					let materialContainer = makeMaterialContainer(m);
 					materialsList.appendChild(materialContainer);
 
-
 					var items = materialsList.childNodes;
 					var itemsArr = [];
 					for (var i in items) {
@@ -91,13 +90,12 @@ fetch(urlFlags).then((response) =>
 							itemsArr.push(items[i]);
 						}
 					}
-					itemsArr.sort(function(a, b) {
+					itemsArr.sort(function (a, b) {
 						return a.innerHTML == b.innerHTML ? 0 : a.innerHTML > b.innerHTML ? 1 : -1;
 					});
 					for (i = 0; i < itemsArr.length; ++i) {
 						materialsList.appendChild(itemsArr[i]);
 					}
-					materialsList.appendChild(create);
 					m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
 				});
 		});
@@ -156,10 +154,11 @@ function loadProperties(material, propertiesContainer) {
 				shownFiles = shownFiles.filter((m) => m !== name);
 				if (shownFiles.length == 0) reset();
 			} else shownFiles.push(name);
-
+			materials.forEach((m) => (m.shadeCounter = 0));
 			loadGraph(shownFiles);
 		};
 	});
+	material.shadeCounter = 0;
 }
 function applyRange() {
 	const fromValue = from.value,
@@ -218,7 +217,6 @@ function generateChart() {
 					ticks: {
 						color: whiteColor,
 					},
-					min: 0,
 					type: "linear",
 					position: "left",
 					title: {
@@ -312,18 +310,27 @@ function loadGraph(names) {
 				let rangeString = material.ranges[map[value]];
 				// console.log(material);
 				// console.log(value);
-				// console.log(rangeString);
-				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
-				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
+				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 299;
+				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 301;
+				console.log(name);
+				console.log(newDataPoints[300]);
 
 				for (let i = 0; i < newDataPoints.length; i++) {
 					if (!(i > min && i < max)) newDataPoints[i] = null;
 				}
+
+				material.shadeCounter++;
+
+				//get number of properties that start with value
+				properties = material.properties.filter((p) => p.split("_")[0] === value);
+
+
+				// material.shadeCounter = material.shadeCounter % properties.length;
 				return {
 					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
 					data: newDataPoints,
 					fill: false,
-					borderColor: material.color,
+					borderColor: getShadeOfColor(material.color, (material.shadeCounter / properties.length + 1)),
 					tension: 0.1,
 					value: value,
 				};
@@ -379,6 +386,15 @@ function getRandomColor() {
 
 		color = "#"; // Reset the color if it's not bright enough
 	}
+}
+function getShadeOfColor(color, percent) {
+	const f = parseInt(color.slice(1), 16);
+	const t = percent < 0 ? 0 : 255;
+	const p = percent < 0 ? percent * -1 : percent;
+	const R = f >> 16;
+	const G = (f >> 8) & 0x00ff;
+	const B = f & 0x0000ff;
+	return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
 }
 
 function showCompare() {
