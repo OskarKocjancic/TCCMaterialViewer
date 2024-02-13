@@ -82,6 +82,22 @@ fetch(urlFlags).then((response) =>
 				.then(() => {
 					let materialContainer = makeMaterialContainer(m);
 					materialsList.appendChild(materialContainer);
+
+
+					var items = materialsList.childNodes;
+					var itemsArr = [];
+					for (var i in items) {
+						if (items[i].nodeType == 1) {
+							itemsArr.push(items[i]);
+						}
+					}
+					itemsArr.sort(function(a, b) {
+						return a.innerHTML == b.innerHTML ? 0 : a.innerHTML > b.innerHTML ? 1 : -1;
+					});
+					for (i = 0; i < itemsArr.length; ++i) {
+						materialsList.appendChild(itemsArr[i]);
+					}
+					materialsList.appendChild(create);
 					m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
 				});
 		});
