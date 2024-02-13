@@ -6,13 +6,14 @@
 		<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 		<link rel="stylesheet" href="style.css" />
+		<meta charset="utf-8">
 	</head>
 	<body>
 		<div class="container">
 			<div class="top">
 				<div class="flex-start">
-					<button class="navButton selectedButton" id="comparisonButton" onclick="showCompare()">Comparison mode</button>
-					<button class="navButton" id="manualButton" onclick="showManual()">Manual mode</button>
+					<button class="navButton selectedButton" id="manualButton" onclick="showManual()">Manual mode</button>
+					<button class="navButton" id="comparisonButton" onclick="showCompare()">Comparison mode</button>
 				</div>
 				<button class="navButton resetButton" onclick="reset()">Reset</button>
 			</div>
@@ -43,5 +44,8 @@
 		</div>
 
 		<script src="app.js"></script>
+		<script>
+			showManual();
+		</script>
 	</body>
 </html>

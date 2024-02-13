@@ -38,7 +38,7 @@ fetch(urlFlags).then((response) =>
 					} else if (m.magnetocaloric || m.barocaloric || m.elastocaloric || m.electrocaloric) {
 						m.fields.forEach((field) => {
 							if (field === "") return;
-							field = m.electrocaloric ? field : field.toFixed(1);
+							field = m.electrocaloric ? field : m.magnetocaloric ? field.toFixed(2) : field.toFixed(1);
 							let unit = m.magnetocaloric ? "T" : m.electrocaloric ? "MVm" : "kbar";
 							if (m.cpFields)
 								if (m.cpThysteresis) {
@@ -80,26 +80,9 @@ fetch(urlFlags).then((response) =>
 					}
 				})
 				.then(() => {
-					var materialContainer = document.createElement("div");
-					materialContainer.className = "materialContainer";
-					var materialName = document.createElement("div");
-					materialName.className = "materialName";
-					materialName.innerHTML = m["name"];
-					materialName.onclick = () => {
-						Array.from(document.getElementsByClassName("propertiesContainer")).forEach((c) => (c != propertiesContainer ? (c.style.display = "none") : {}));
-						propertiesContainer.style.display = propertiesContainer.style.display == "none" ? "flex" : "none";
-					};
-
-					var propertiesContainer = document.createElement("div");
-					propertiesContainer.className = "propertiesContainer";
-					propertiesContainer.style.display = "none";
-
-					materialContainer.appendChild(materialName);
-					materialContainer.appendChild(propertiesContainer);
+					let materialContainer = makeMaterialContainer(m);
 					materialsList.appendChild(materialContainer);
-
 					m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
-					loadProperties(m, propertiesContainer);
 				});
 		});
 
@@ -109,6 +92,27 @@ fetch(urlFlags).then((response) =>
 		};
 	})
 );
+
+function makeMaterialContainer(m) {
+	var materialContainer = document.createElement("div");
+	materialContainer.className = "materialContainer";
+	var materialName = document.createElement("div");
+	materialName.className = "materialName";
+	materialName.innerHTML = m["name"];
+	materialName.onclick = () => {
+		Array.from(document.getElementsByClassName("propertiesContainer")).forEach((c) => (c != propertiesContainer ? (c.style.display = "none") : {}));
+		propertiesContainer.style.display = propertiesContainer.style.display == "none" ? "flex" : "none";
+	};
+
+	var propertiesContainer = document.createElement("div");
+	propertiesContainer.className = "propertiesContainer";
+	propertiesContainer.style.display = "none";
+	loadProperties(m, propertiesContainer);
+
+	materialContainer.appendChild(materialName);
+	materialContainer.appendChild(propertiesContainer);
+	return materialContainer;
+}
 
 function loadProperties(material, propertiesContainer) {
 	var select = document.querySelector(".selectProperties");
@@ -289,14 +293,15 @@ function loadGraph(names) {
 					k: "thermalConductivity",
 					dT: "adiabaticTemperatureChange",
 				};
-				if (material.ranges[map[value]] !== undefined || material.ranges[map[value]] !== "") {
-					let rangeString= material.ranges[map[value]];
-					var min = rangeString === "" ? parseFloat(rangeString.split("-")[0]) : 0;
-					var max = rangeString === "" ? parseFloat(rangeString.split("-")[1]) : 2000;
+				let rangeString = material.ranges[map[value]];
+				// console.log(material);
+				// console.log(value);
+				// console.log(rangeString);
+				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
+				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
 
-					for (let i = 0; i < newDataPoints.length; i++) {
-						if (!(i > min && i < max)) newDataPoints[i] = null;
-					}
+				for (let i = 0; i < newDataPoints.length; i++) {
+					if (!(i > min && i < max)) newDataPoints[i] = null;
 				}
 				return {
 					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
@@ -308,6 +313,7 @@ function loadGraph(names) {
 				};
 			});
 	});
+
 	Promise.all(datasets).then((d) => {
 		datasets = d.filter((p) => p.data.length > 1);
 		if (chart != undefined) chart.destroy();
@@ -319,9 +325,7 @@ function loadGraph(names) {
 function getUnit() {
 	let dataset = datasets[datasets.length - 1];
 	if (dataset == undefined) return;
-	console.log(dataset, currentShownProperty, shownFiles);
-	/* 	let file = dataset.label.split(" ")[2];
-	file = file.split("_")[0] */
+
 	switch (dataset.value) {
 		case "k":
 			return "Thermal Conductivity (W/(mK))";
