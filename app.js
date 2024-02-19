@@ -168,7 +168,6 @@ function applyRange() {
 	minTemp = regex.test(fromValue) ? Math.round(parseFloat(fromValue)) : 0;
 	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
 
-	console.log(regex, minTemp, maxTemp);
 	if (chart != undefined) chart.destroy();
 
 	chart = generateChart();
@@ -205,7 +204,7 @@ function generateChart() {
 						color: whiteColor,
 						padding: 36,
 						font: {
-							size: 18, // Adjust the font size as needed
+							size: 22,
 						},
 					},
 				},
@@ -225,7 +224,7 @@ function generateChart() {
 						color: whiteColor,
 						padding: 36,
 						font: {
-							size: 18, // Adjust the font size as needed
+							size: 22,
 						},
 					},
 				},
@@ -281,8 +280,14 @@ function loadGraph(names) {
 	datasets = names.map((name) => {
 		const url = materialLibraryURL + name + ".txt";
 		return fetch(url)
-			.then((response) => response.text())
+			.then((response) => {
+				console.log(response);
+				if (!response.ok) 
+					return "0.0\n".repeat(20000);
+				return response.text();
+			})
 			.then((data) => {
+				console.log(data);
 				var dataPoints = data.trim().split("\n");
 				dataPoints = dataPoints.map((a) => parseFloat(a));
 				var newDataPoints = [];
@@ -308,12 +313,8 @@ function loadGraph(names) {
 					dT: "adiabaticTemperatureChange",
 				};
 				let rangeString = material.ranges[map[value]];
-				// console.log(material);
-				// console.log(value);
-				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 299;
-				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 301;
-				console.log(name);
-				console.log(newDataPoints[300]);
+				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 280;
+				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 310;
 
 				for (let i = 0; i < newDataPoints.length; i++) {
 					if (!(i > min && i < max)) newDataPoints[i] = null;
@@ -324,13 +325,11 @@ function loadGraph(names) {
 				//get number of properties that start with value
 				properties = material.properties.filter((p) => p.split("_")[0] === value);
 
-
-				// material.shadeCounter = material.shadeCounter % properties.length;
 				return {
 					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
 					data: newDataPoints,
 					fill: false,
-					borderColor: getShadeOfColor(material.color, (material.shadeCounter / properties.length + 1)),
+					borderColor: getShadeOfColor(material.color, 1 +( material.shadeCounter / properties.length+1)),
 					tension: 0.1,
 					value: value,
 				};
@@ -364,7 +363,7 @@ function getUnit() {
 }
 
 function getRandomColor() {
-	const brightnessThreshold = 64; // Adjust this threshold to control brightness
+	const brightnessThreshold = 24;
 	const letters = "0123456789ABCDEF";
 	let color = "#";
 
@@ -377,14 +376,13 @@ function getRandomColor() {
 		const g = parseInt(color.slice(3, 5), 16);
 		const b = parseInt(color.slice(5, 7), 16);
 
-		// Calculate brightness using the relative luminance formula
 		const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-
 		if (brightness >= brightnessThreshold) {
 			return color;
+			console.log(brightness);
 		}
 
-		color = "#"; // Reset the color if it's not bright enough
+		color = "#";
 	}
 }
 function getShadeOfColor(color, percent) {
