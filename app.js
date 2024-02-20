@@ -282,8 +282,7 @@ function loadGraph(names) {
 		return fetch(url)
 			.then((response) => {
 				console.log(response);
-				if (!response.ok) 
-					return "0.0\n".repeat(20000);
+				if (!response.ok) return "0.0\n".repeat(20000);
 				return response.text();
 			})
 			.then((data) => {
@@ -317,6 +316,8 @@ function loadGraph(names) {
 				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 310;
 
 				for (let i = 0; i < newDataPoints.length; i++) {
+					if (newDataPoints[i] > 15000) newDataPoints[i] = 16000;
+					if (newDataPoints[i] < -15000) newDataPoints[i] = -16000;
 					if (!(i > min && i < max)) newDataPoints[i] = null;
 				}
 
@@ -329,7 +330,7 @@ function loadGraph(names) {
 					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
 					data: newDataPoints,
 					fill: false,
-					borderColor: getShadeOfColor(material.color, 1 +( material.shadeCounter / properties.length+1)),
+					borderColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
 					tension: 0.1,
 					value: value,
 				};
