@@ -17,6 +17,7 @@ var minTemp = 0;
 var maxTemp = 2000;
 var currentShownProperty = "";
 
+
 fetch(urlFlags).then((response) =>
 	response.text().then((data) => {
 		var materialsList = document.querySelector(".materialsList");
@@ -266,6 +267,8 @@ function generateChart() {
 function reset() {
 	from.value = "";
 	to.value = "";
+	minTemp = 0;
+	maxTemp = 2000;
 	currentShownProperty = "";
 	shownFiles = [];
 	if (chart != undefined) chart.destroy();
@@ -312,13 +315,13 @@ function loadGraph(names) {
 					dT: "adiabaticTemperatureChange",
 				};
 				let rangeString = material.ranges[map[value]];
-				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 280;
-				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 310;
+				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
+				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
 
 				for (let i = 0; i < newDataPoints.length; i++) {
 					if (newDataPoints[i] > 15000) newDataPoints[i] = 16000;
 					if (newDataPoints[i] < -15000) newDataPoints[i] = -16000;
-					if (!(i > min && i < max)) newDataPoints[i] = null;
+					if (!(i > min && i < max) || newDataPoints[i] == 0) newDataPoints[i] = null;
 				}
 
 				material.shadeCounter++;
