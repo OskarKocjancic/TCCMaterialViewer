@@ -1,4 +1,4 @@
-var materialLibraryURL = "TCCMaterialLibrary/";
+// var materialLibraryURL = "TCCMaterialLibrary/";
 var materialLibraryURL = "https://materials.tccbuilder.org/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
