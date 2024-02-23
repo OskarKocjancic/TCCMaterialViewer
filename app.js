@@ -1,6 +1,5 @@
-var CORSproxy = "https://corsproxy.io/?";
-var materialLibraryURL = CORSproxy + "http://materials.tccbuilder.org/";
-materialLibraryURL = "TCCMaterialLibrary/";
+var materialLibraryURL = "TCCMaterialLibrary/";
+var materialLibraryURL = "http://materials.tccbuilder.org/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
 const canvas = document.getElementById("myChart");
