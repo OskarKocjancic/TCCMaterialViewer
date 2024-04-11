@@ -6,18 +6,15 @@
 		<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 		<link rel="stylesheet" href="style.css" />
-		<meta charset="utf-8">
+		<meta charset="utf-8" />
 	</head>
 	<body>
 		<div class="container">
-			<div class="top">
-				<div class="flex-start">
+			<div class="left">
+				<div class="buttonContainer">
 					<button class="navButton selectedButton" id="manualButton" onclick="showManual()">Manual mode</button>
 					<button class="navButton" id="comparisonButton" onclick="showCompare()">Comparison mode</button>
 				</div>
-				<button class="navButton resetButton" onclick="reset()">Reset</button>
-			</div>
-			<div class="left">
 				<div class="propertyCompare">
 					<div class="heading">Compare properties</div>
 					<select class="selectProperties">
@@ -35,7 +32,12 @@
 					<input id="from" type="text" />
 					<div class="heading2">To:</div>
 					<input id="to" type="text" />
-					<button class="applyRangeButton" onclick="applyRange()">Apply</button>
+					<div class="buttonContainer">
+						<button class="applyRangeButton" onclick="applyRange()">Apply</button>
+					</div>
+					<div class="buttonContainer">
+						<button class="navButton resetButton" onclick="reset()">Reset</button>
+					</div>
 				</div>
 			</div>
 			<div class="right">

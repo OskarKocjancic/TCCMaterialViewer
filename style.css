@@ -11,6 +11,7 @@
   --blue: #2f3847;
   --deep-blue: #384354;
   --white: #F2F2F2;
+  --light-white: #f2f2f2d6;
   --red: #D93B3B;
   --deep-red: #8d2424;
   --yellow: #e7a217;
@@ -18,12 +19,11 @@
 }
 
 
-/* utility classes */
-.flex-start {
+.buttonContainer {
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
-  flex-direction: row;
+  width: 100%;
 }
 
 body {
@@ -42,9 +42,8 @@ canvas {
   min-height: 100vh;
   grid-auto-flow: row;
   grid-template-columns: 0.75fr 1.25fr 1fr;
-  grid-template-rows: 0.125fr 1.875fr 1fr 1.75fr 0.25fr;
+  grid-template-rows: 2fr 1fr 1.75fr 0.25fr;
   grid-template-areas:
-    "top top top"
     "left right right"
     "left right right"
     "left right right"
@@ -78,7 +77,6 @@ canvas {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
   overflow: scroll;
 }
 
@@ -190,7 +188,6 @@ canvas {
   width: 100%;
   text-align: left;
   color: var(--white);
-  margin-bottom: 0.5rem;
 }
 
 .heading2 {
@@ -230,15 +227,14 @@ button:hover {
 }
 
 .navButton {
-  background-color: var(--blue);
-  height: 28px;
+  background-color: var(--deep-blue);
+  height: 2rem;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
-
 }
 
 .applyRangeButton {
-  height: 28px;
+  height: 2rem;
   margin-top: 0.5rem;
   padding-left: 0.75rem;
   padding-right: 0.75rem;
@@ -247,10 +243,14 @@ button:hover {
 .resetButton {
   background-color: var(--red);
   border-color: var(--deep-red);
+  height: 2rem;
+  margin-top: 0.5rem;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
 }
 
 .selectedButton {
-  background-color: var(--deep-blue);
+  background-color: var(--blue);
 }
 
 .propertiesContainer {

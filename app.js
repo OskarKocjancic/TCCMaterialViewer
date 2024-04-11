@@ -1,4 +1,3 @@
-// var materialLibraryURL = "TCCMaterialLibrary/";
 var materialLibraryURL = "https://materials.tccbuilder.org/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
@@ -10,12 +9,11 @@ var chart;
 var labels = [];
 var shownFiles = [];
 var selectProperties = ["rho"];
-var whiteColor = getComputedStyle(document.documentElement).getPropertyValue("--white");
+var whiteColor = getComputedStyle(document.documentElement).getPropertyValue("--light-white");
 var datasets;
 var minTemp = 0;
 var maxTemp = 2000;
 var currentShownProperty = "";
-
 
 fetch(urlFlags).then((response) =>
 	response.text().then((data) => {
@@ -288,23 +286,9 @@ function loadGraph(names) {
 				return response.text();
 			})
 			.then((data) => {
-				console.log(data);
 				var dataPoints = data.trim().split("\n");
 				dataPoints = dataPoints.map((a) => parseFloat(a));
-				var newDataPoints = [];
-				if (dataPoints.length == 1) {
-					for (let i = 0; i < maxTemp; i++) {
-						newDataPoints.push(dataPoints[0]);
-						labels.push(i);
-					}
-				} else {
-					for (let i = 0; i < dataPoints.length; i++) {
-						if (i % 10 == 0) {
-							newDataPoints.push(dataPoints[i]);
-							labels.push(i * 0.1);
-						}
-					}
-				}
+
 				var material = materials.find((m) => m.name === name.split("/")[0]);
 				var value = name.split("/")[2].split("_")[0];
 				var map = {
@@ -316,7 +300,21 @@ function loadGraph(names) {
 				let rangeString = material.ranges[map[value]];
 				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
 				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
-
+				var newDataPoints = [];
+				if (dataPoints.length == 1) {
+					for (let i = 0; i < maxTemp; i++) {
+						if (i > 285 && i < 302) newDataPoints.push(dataPoints[0]);
+						else newDataPoints.push(null);
+						labels.push(i);
+					}
+				} else {
+					for (let i = 0; i < dataPoints.length; i++) {
+						if (i % 10 == 0) {
+							newDataPoints.push(dataPoints[i]);
+							labels.push(i * 0.1);
+						}
+					}
+				}
 				for (let i = 0; i < newDataPoints.length; i++) {
 					if (newDataPoints[i] > 15000) newDataPoints[i] = 16000;
 					if (newDataPoints[i] < -15000) newDataPoints[i] = -16000;
