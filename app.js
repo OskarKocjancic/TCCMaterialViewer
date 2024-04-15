@@ -21,6 +21,7 @@ fetch(urlFlags).then((response) =>
 		materials = Papa.parse(data.trim(), { header: true }).data;
 		materials.forEach((m) => {
 			Object.keys(m).forEach((a) => (a !== "name" ? (m[a] = a != "" ? m[a] === "1" : m[a]) : a));
+			console.log(m);
 			m.properties = ["rho"];
 			m.color = getRandomColor();
 			fetch(materialLibraryURL + m.name + "/appInfo/" + "info.json")
@@ -30,52 +31,45 @@ fetch(urlFlags).then((response) =>
 					})
 				)
 				.then(() => {
-					if (m.invariant) {
+					let unit = m.magnetocaloric ? "T" : m.electrocaloric ? "MVm" : "kbar";
+
+					if (!m.cpFields && !m.cpThysteresis) {
 						m.properties.push(`cp`);
-						m.properties.push(`k`);
-					} else if (m.magnetocaloric || m.barocaloric || m.elastocaloric || m.electrocaloric) {
+					} else if (!m.cpFields && m.cpThysteresis) {
+						m.properties.push(`cp_heating`);
+						m.properties.push(`cp_cooling`);
+					} else if (m.cpFields && !m.cpThysteresis)
 						m.fields.forEach((field) => {
 							if (field === "") return;
 							field = m.electrocaloric ? field : field.toFixed(2);
-							let unit = m.magnetocaloric ? "T" : m.electrocaloric ? "MVm" : "kbar";
-							if (m.cpFields)
-								if (m.cpThysteresis) {
-									m.properties.push(`cp_${field}${unit}_heating`);
-									m.properties.push(`cp_${field}${unit}_cooling`);
-								} else {
-									m.properties.push(`cp_${field}${unit}`);
-								}
-							if (field != 0) {
-								// LEFT OUT FOR NOW
-								// if (m.dTThysteresis) {
-								// 	m.properties.push(`dT_${field}${unit}_heating`);
-								// 	m.properties.push(`dT_${field}${unit}_cooling`);
-								// } else {
-								// 	m.properties.push(`dT_${field}${unit}`);
-								// }
+							m.properties.push(`cp_${field}${unit}`);
+						});
+					else if (m.cpFields && m.cpThysteresis)
+						m.fields.forEach((field) => {
+							if (field === "") return;
+							field = m.electrocaloric ? field : field.toFixed(2);
+							m.properties.push(`cp_${field}${unit}_heating`);
+							m.properties.push(`cp_${field}${unit}_cooling`);
+						});
 
+					if (m.fields.length > 0 && m.dTThysteresis)
+						m.fields.forEach((field) => {
+							if (field != 0) {
 								m.properties.push(`dT_${field}${unit}_apply`);
 								m.properties.push(`dT_${field}${unit}_remove`);
 							}
 						});
-						if (!m.cpFields) m.properties.push(`cp`);
+					else if (m.fields.length > 0 && !m.dTThysteresis)
+						m.fields.forEach((field) => {
+							if (field != 0) {
+								m.properties.push(`dT_${field}${unit}`);
+							}
+						});
 
-						if (m.kThysteresis) {
-							m.properties.push(`k_heating`);
-							m.properties.push(`k_cooling`);
-						} else {
-							m.properties.push(`k`);
-						}
-						m.properties.sort();
-						m.properties.forEach((p) => (!selectProperties.includes(p) ? selectProperties.push(p) : p));
-					} else {
-						if (m.kThysteresis) {
-							m.properties.push(`k_heating`);
-							m.properties.push(`k_cooling`);
-						} else {
-							m.properties.push(`k`);
-						}
-					}
+					if (m.kThysteresis) {
+						m.properties.push(`k_heating`);
+						m.properties.push(`k_cooling`);
+					} else m.properties.push(`k`);
 				})
 				.then(() => {
 					let materialContainer = makeMaterialContainer(m);
