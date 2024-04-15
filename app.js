@@ -32,7 +32,6 @@ fetch(urlFlags).then((response) =>
 				)
 				.then(() => {
 					let unit = m.magnetocaloric ? "T" : m.electrocaloric ? "MVm" : "kbar";
-
 					if (!m.cpFields && !m.cpThysteresis) {
 						m.properties.push(`cp`);
 					} else if (!m.cpFields && m.cpThysteresis) {
@@ -51,20 +50,31 @@ fetch(urlFlags).then((response) =>
 							m.properties.push(`cp_${field}${unit}_heating`);
 							m.properties.push(`cp_${field}${unit}_cooling`);
 						});
-
-					if (m.fields.length > 0 && m.dTThysteresis)
+					// DISABLED FOR NOW
+					// if (m.fields && m.dTThysteresis)
+					// 	m.fields.forEach((field) => {
+					// 		if (field != 0) {
+					// 			m.properties.push(`dT_${field}${unit}_apply`);
+					// 			m.properties.push(`dT_${field}${unit}_remove`);
+					// 		}
+					// 	});
+					// else if (m.fields && !m.dTThysteresis)
+					// 	m.fields.forEach((field) => {
+					// 		if (field != 0) {
+					// 			m.properties.push(`dT_${field}${unit}`);
+					// 		}
+					// 	});
+					if (m.fields) {
 						m.fields.forEach((field) => {
+							if (field === "") return;
+							field = m.electrocaloric ? field : field.toFixed(2);
 							if (field != 0) {
 								m.properties.push(`dT_${field}${unit}_apply`);
 								m.properties.push(`dT_${field}${unit}_remove`);
 							}
+							1;
 						});
-					else if (m.fields.length > 0 && !m.dTThysteresis)
-						m.fields.forEach((field) => {
-							if (field != 0) {
-								m.properties.push(`dT_${field}${unit}`);
-							}
-						});
+					}
 
 					if (m.kThysteresis) {
 						m.properties.push(`k_heating`);
