@@ -281,11 +281,12 @@ function loadGraph(names) {
 		chart.destroy();
 		return;
 	} */
-	datasets = names.map((name) => {
+	document.querySelector("#loading").style.display = "block";
+	canvas.style.display = "none";
+	datasets = names.map(async (name) => {
 		const url = materialLibraryURL + name + ".txt";
 		return fetch(url)
 			.then((response) => {
-				console.log(response);
 				if (!response.ok) return "0.0\n".repeat(20000);
 				return response.text();
 			})
@@ -329,7 +330,6 @@ function loadGraph(names) {
 
 				//get number of properties that start with value
 				properties = material.properties.filter((p) => p.split("_")[0] === value);
-
 				return {
 					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
 					data: newDataPoints,
@@ -346,6 +346,7 @@ function loadGraph(names) {
 		if (chart != undefined) chart.destroy();
 		chart = generateChart();
 		canvas.style.display = "block";
+		document.querySelector("#loading").style.display = "none";
 	});
 }
 

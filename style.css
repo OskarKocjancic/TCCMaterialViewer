@@ -262,6 +262,10 @@ button:hover {
   width: 100%;
 }
 
+.loading {
+  color: #F2F2F2;
+}
+
 input {
   border: none;
   width: 100%;
