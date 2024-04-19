@@ -1,4 +1,5 @@
-var materialLibraryURL = "https://materials.tccbuilder.org/";
+// var materialLibraryURL = "https://materials.tccbuilder.org/";
+var materialLibraryURL = "http://127.0.0.1:5555/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
 const canvas = document.getElementById("myChart");
@@ -102,7 +103,7 @@ fetch(urlFlags).then((response) =>
 		});
 
 		var select = document.querySelector(".selectProperties");
-		select.onclick = () => {
+		select.onchange = () => {
 			fetchDatasets(
 				materials.filter((a) => a.properties.includes(select.value)).map((m) => m.name + "/appInfo/" + select.value),
 				(d) => {
@@ -142,6 +143,11 @@ function loadProperties(material, propertiesContainer) {
 	var select = document.querySelector(".selectProperties");
 	select.innerHTML = "";
 	selectProperties.sort();
+	var option = document.createElement("option");
+	option.innerHTML = "Select your option";
+	option.disabled = true;
+	option.selected = true;
+	select.appendChild(option);
 	selectProperties.forEach((p) => {
 		var option = document.createElement("option");
 		option.value = p;
@@ -191,13 +197,16 @@ function applyRange() {
 	minTemp = regex.test(fromValue) ? Math.round(parseFloat(fromValue)) : 0;
 	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
 
-	fetchDatasets(shownFiles, (d) => {
-		datasets = d.filter((p) => p.data.length > 1);
-		if (chart != undefined) chart.destroy();
-		chart = generateChart();
-		canvas.style.display = "block";
-		document.querySelector("#loading").style.display = "none";
-	});
+	// fetchDatasets(shownFiles, (d) => {
+	// 	datasets = d.filter((p) => p.data.length > 1);
+	// 	if (chart != undefined) chart.destroy();
+	// 	chart = generateChart();
+	// 	canvas.style.display = "block";
+	// 	document.querySelector("#loading").style.display = "none";
+	// });
+	datasets = d.filter((p) => p.data.length > 1);
+	if (chart != undefined) chart.destroy();
+	chart = generateChart();
 }
 
 function generateChart() {
@@ -207,7 +216,10 @@ function generateChart() {
 			labels: labels,
 			datasets: datasets,
 		},
+
 		options: {
+			parsing: false,
+			animation: false,
 			elements: {
 				point: {
 					radius: 0,
@@ -269,6 +281,12 @@ function generateChart() {
 					labels: {
 						color: whiteColor,
 					},
+				},
+				decimation: {
+					enabled: true,
+					algorithm: "lttb",
+					samples: 100,
+					threshold: 100,
 				},
 				zoom: {
 					limits: {
@@ -358,9 +376,18 @@ function fetchDatasets(names, callback) {
 
 				//get number of properties that start with value
 				properties = material.properties.filter((p) => p.split("_")[0] === value);
+
+				let out = newDataPoints.map((a, i) => {
+					return {
+						x: i,
+						y: a,
+					};
+				});
 				return {
+					type: "line",
+					indexAxis: "x",
 					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
-					data: newDataPoints,
+					data: out,
 					fill: false,
 					borderColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
 					tension: 0.1,
