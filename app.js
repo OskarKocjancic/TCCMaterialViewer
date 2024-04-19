@@ -21,7 +21,6 @@ fetch(urlFlags).then((response) =>
 		materials = Papa.parse(data.trim(), { header: true }).data;
 		materials.forEach((m) => {
 			Object.keys(m).forEach((a) => (a !== "name" ? (m[a] = a != "" ? m[a] === "1" : m[a]) : a));
-			console.log(m);
 			m.properties = ["rho"];
 			m.color = getRandomColor();
 			fetch(materialLibraryURL + m.name + "/appInfo/" + "info.json")
@@ -167,12 +166,19 @@ function applyRange() {
 		toValue = to.value;
 	const regex = /^\d+$/;
 
+	from.style.border = regex.test(fromValue) ? "1px solid #ccc" : "1px solid red";
+	to.style.border = regex.test(toValue) ? "1px solid #ccc" : "1px solid red";
+
 	minTemp = regex.test(fromValue) ? Math.round(parseFloat(fromValue)) : 0;
 	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
 
 	if (chart != undefined) chart.destroy();
 
 	chart = generateChart();
+
+	canvas.style.display = "block";
+	document.querySelector("#loading").style.display = "none";	
+
 }
 
 function generateChart() {
@@ -277,10 +283,6 @@ function reset() {
 }
 
 function loadGraph(names) {
-	/* 	if ((shownFiles.length == 0) & (chart !== undefined)) {
-		chart.destroy();
-		return;
-	} */
 	document.querySelector("#loading").style.display = "block";
 	canvas.style.display = "none";
 	datasets = names.map(async (name) => {
@@ -385,7 +387,6 @@ function getRandomColor() {
 		const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
 		if (brightness >= brightnessThreshold) {
 			return color;
-			console.log(brightness);
 		}
 
 		color = "#";
