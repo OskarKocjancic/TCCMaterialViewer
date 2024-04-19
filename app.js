@@ -103,7 +103,16 @@ fetch(urlFlags).then((response) =>
 
 		var select = document.querySelector(".selectProperties");
 		select.onclick = () => {
-			loadGraph(materials.filter((a) => a.properties.includes(select.value)).map((m) => m.name + "/appInfo/" + select.value));
+			fetchDatasets(
+				materials.filter((a) => a.properties.includes(select.value)).map((m) => m.name + "/appInfo/" + select.value),
+				(d) => {
+					datasets = d.filter((p) => p.data.length > 1);
+					if (chart != undefined) chart.destroy();
+					chart = generateChart();
+					canvas.style.display = "block";
+					document.querySelector("#loading").style.display = "none";
+				}
+			);
 		};
 	})
 );
@@ -148,15 +157,25 @@ function loadProperties(material, propertiesContainer) {
 		button.onclick = () => {
 			if (currentShownProperty != "" && currentShownProperty != property.split("_")[0]) return;
 			else currentShownProperty = property.split("_")[0];
+
 			var name = material.name + "/appInfo/" + property;
+
 			if (!button.classList.contains("activeMaterialProperty")) button.classList.add("activeMaterialProperty");
 			else button.classList.remove("activeMaterialProperty");
+
 			if (shownFiles.includes(name)) {
 				shownFiles = shownFiles.filter((m) => m !== name);
 				if (shownFiles.length == 0) reset();
 			} else shownFiles.push(name);
+
 			materials.forEach((m) => (m.shadeCounter = 0));
-			loadGraph(shownFiles);
+			fetchDatasets(shownFiles, (d) => {
+				datasets = d.filter((p) => p.data.length > 1);
+				if (chart != undefined) chart.destroy();
+				chart = generateChart();
+				canvas.style.display = "block";
+				document.querySelector("#loading").style.display = "none";
+			});
 		};
 	});
 	material.shadeCounter = 0;
@@ -172,13 +191,13 @@ function applyRange() {
 	minTemp = regex.test(fromValue) ? Math.round(parseFloat(fromValue)) : 0;
 	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
 
-	if (chart != undefined) chart.destroy();
-
-	chart = generateChart();
-
-	canvas.style.display = "block";
-	document.querySelector("#loading").style.display = "none";	
-
+	fetchDatasets(shownFiles, (d) => {
+		datasets = d.filter((p) => p.data.length > 1);
+		if (chart != undefined) chart.destroy();
+		chart = generateChart();
+		canvas.style.display = "block";
+		document.querySelector("#loading").style.display = "none";
+	});
 }
 
 function generateChart() {
@@ -282,14 +301,18 @@ function reset() {
 	document.querySelectorAll("button").forEach((button) => button.classList.remove("activeMaterialProperty"));
 }
 
-function loadGraph(names) {
+function fetchDatasets(names, callback) {
 	document.querySelector("#loading").style.display = "block";
 	canvas.style.display = "none";
 	datasets = names.map(async (name) => {
 		const url = materialLibraryURL + name + ".txt";
 		return fetch(url)
 			.then((response) => {
-				if (!response.ok) return "0.0\n".repeat(20000);
+				if (!response.ok) {
+					console.log(name + " not found");
+					return "0.0\n".repeat(20000);
+				}
+
 				return response.text();
 			})
 			.then((data) => {
@@ -308,6 +331,7 @@ function loadGraph(names) {
 				var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
 				var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
 				var newDataPoints = [];
+
 				if (dataPoints.length == 1) {
 					for (let i = 0; i < maxTemp; i++) {
 						if (i > 285 && i < 302) newDataPoints.push(dataPoints[0]);
@@ -315,19 +339,21 @@ function loadGraph(names) {
 						labels.push(i);
 					}
 				} else {
+					let range = maxTemp - minTemp;
+					let modulo = (range * 10) / 25;
+					modulo = 10;
 					for (let i = 0; i < dataPoints.length; i++) {
-						if (i % 10 == 0) {
+						if (i % modulo == 0) {
 							newDataPoints.push(dataPoints[i]);
 							labels.push(i * 0.1);
 						}
 					}
 				}
-				for (let i = 0; i < newDataPoints.length; i++) {
+				for (let i = 0; i < dataPoints.length; i++) {
 					if (newDataPoints[i] > 15000) newDataPoints[i] = 16000;
 					if (newDataPoints[i] < -15000) newDataPoints[i] = -16000;
 					if (!(i > min && i < max) || newDataPoints[i] == 0) newDataPoints[i] = null;
 				}
-
 				material.shadeCounter++;
 
 				//get number of properties that start with value
@@ -343,13 +369,7 @@ function loadGraph(names) {
 			});
 	});
 
-	Promise.all(datasets).then((d) => {
-		datasets = d.filter((p) => p.data.length > 1);
-		if (chart != undefined) chart.destroy();
-		chart = generateChart();
-		canvas.style.display = "block";
-		document.querySelector("#loading").style.display = "none";
-	});
+	Promise.all(datasets).then(callback);
 }
 
 function getUnit() {
