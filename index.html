@@ -27,14 +27,19 @@
 					<!-- <div class="heading">Manually toggle in graph</div> -->
 				</div>
 				<div class="ranges">
-					<div class="heading">Define temperature range <sm>(optional)</sm></div>
+					<div class="heading">Temperature range</div>
+
 					<div class="heading2">From:</div>
-					<input id="from" type="text" />
-					<div class="heading2">To:</div>
-					<input id="to" type="text" />
-					<div class="buttonContainer">
-						<button class="applyRangeButton" onclick="applyRange()">Apply</button>
+					<div class="rangeContainer">
+						<input id="fromSlider" type="range" value="0" min="0" max="2000" oninput="syncInputsWithSliders()" />
+						<input id="from" type="text" value="0" oninput="syncSlidersWithInputs()" />
 					</div>
+					<div class="heading2">To:</div>
+					<div class="rangeContainer">
+						<input id="toSlider" type="range" value="2000" min="0" max="2000" oninput="syncInputsWithSliders()" />
+						<input id="to" type="text" value="2000" oninput="syncSlidersWithInputs()" />
+					</div>
+
 					<div class="buttonContainer">
 						<button class="navButton resetButton" onclick="reset()">Reset</button>
 					</div>
@@ -42,7 +47,7 @@
 			</div>
 			<div class="right">
 				<canvas class="myChart" id="myChart"></canvas>
-				<span id="loading" class="loading" style="display: none;">Loading...</span>
+				<span id="loading" class="loading" style="display: none">Loading...</span>
 			</div>
 		</div>
 

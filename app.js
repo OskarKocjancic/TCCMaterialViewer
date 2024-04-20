@@ -1,7 +1,9 @@
-// var materialLibraryURL = "https://materials.tccbuilder.org/";
-var materialLibraryURL = "http://127.0.0.1:5555/";
+var materialLibraryURL = "https://materials.tccbuilder.org/";
+// var materialLibraryURL = "http://127.0.0.1:5555/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
+var fromSlider = document.getElementById("fromSlider");
+var toSlider = document.getElementById("toSlider");
 const canvas = document.getElementById("myChart");
 const ctx = canvas.getContext("2d");
 var urlFlags = materialLibraryURL + "materials_flags.csv";
@@ -204,9 +206,14 @@ function applyRange() {
 	// 	canvas.style.display = "block";
 	// 	document.querySelector("#loading").style.display = "none";
 	// });
-	datasets = d.filter((p) => p.data.length > 1);
-	if (chart != undefined) chart.destroy();
-	chart = generateChart();
+	// datasets = d.filter((p) => p.data.length > 1);
+	// if (chart != undefined) chart.destroy();
+	// chart = generateChart();
+	if (chart != undefined) {
+		chart.options.scales.x.min = minTemp;
+		chart.options.scales.x.max = maxTemp;
+		chart.update();
+	}
 }
 
 function generateChart() {
@@ -309,8 +316,8 @@ function generateChart() {
 }
 
 function reset() {
-	from.value = "";
-	to.value = "";
+	from.value = 0;
+	to.value = 2000;
 	minTemp = 0;
 	maxTemp = 2000;
 	currentShownProperty = "";
@@ -377,19 +384,19 @@ function fetchDatasets(names, callback) {
 				//get number of properties that start with value
 				properties = material.properties.filter((p) => p.split("_")[0] === value);
 
-				let out = newDataPoints.map((a, i) => {
-					return {
-						x: i,
-						y: a,
-					};
-				});
 				return {
 					type: "line",
 					indexAxis: "x",
 					label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
-					data: out,
+					data: newDataPoints.map((a, i) => {
+						return {
+							x: i,
+							y: a,
+						};
+					}),
 					fill: false,
 					borderColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
+					backgroundColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
 					tension: 0.1,
 					value: value,
 				};
@@ -462,4 +469,28 @@ function showManual() {
 	document.getElementById("comparisonButton").classList.remove("selectedButton");
 	document.getElementById("manualButton").classList.add("selectedButton");
 	reset();
+}
+
+function syncInputsWithSliders() {
+	from.value = fromSlider.value;
+	to.value = toSlider.value;
+	// if (from.value > to.value) {
+	// 	from.value = to.value;
+	// 	fromSlider.value = toSlider.value;
+	// }
+	applyRange();
+}
+
+function syncSlidersWithInputs() {
+	if (to.value > 2000) to.value = 2000;
+	if (to.value < 0) to.value = 0;
+	if (from.value > 2000) from.value = 2000;
+	if (from.value < 0) from.value = 0;1
+	fromSlider.value = from.value;
+	toSlider.value = to.value;
+	// if (from.value > to.value) {
+	// 	from.value = to.value;
+	// 	fromSlider.value = toSlider.value;
+	// }
+	applyRange();
 }
