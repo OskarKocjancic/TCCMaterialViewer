@@ -1,5 +1,5 @@
-// var materialLibraryURL = "https://materials.tccbuilder.org/";
-var materialLibraryURL = "http://127.0.0.1:5555/";
+var materialLibraryURL = "https://materials.tccbuilder.org/";
+// var materialLibraryURL = "http://127.0.0.1:5555/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
 var fromSlider = document.getElementById("fromSlider");
@@ -351,6 +351,12 @@ function reset() {
 	shownFiles = [];
 	if (chart != undefined) chart.destroy();
 	document.querySelectorAll("button").forEach((button) => button.classList.remove("activeMaterialProperty"));
+}
+function reload(){
+	server.files.clear();	
+	location.reload();
+	
+
 }
 
 // async function getFile(name, url) {
