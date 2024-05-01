@@ -19,6 +19,7 @@ var maxTemp = 2000;
 var currentShownProperty = "";
 var server;
 var promisedFiles = [];
+
 db.open({
 	server: "database",
 	version: 1,
@@ -202,16 +203,18 @@ function loadProperties(material, propertiesContainer) {
 				if (shownFiles.length == 0) reset();
 			} else shownFiles.push(name);
 
-			materials.forEach((m) => (m.shadeCounter = 0));
 			fetchDatasets(shownFiles, (d) => {
 				datasets = d.filter((p) => p.data.length > 1);
+
+				materials.forEach((m) => {
+					m.temp_color = undefined;
+				});
 				canvas.style.display = "block";
 				document.querySelector("#loading").style.display = "none";
 				generateChart();
 			});
 		};
 	});
-	material.shadeCounter = 0;
 }
 function applyRange() {
 	const fromValue = from.value,
@@ -232,7 +235,6 @@ function applyRange() {
 }
 
 function generateChart() {
-
 	const config = {
 		type: "line",
 		data: {
@@ -245,7 +247,7 @@ function generateChart() {
 			animation: false,
 			elements: {
 				point: {
-					radius: 0,
+					radius: 3,
 				},
 			},
 			scales: {
@@ -311,25 +313,13 @@ function generateChart() {
 					samples: 100,
 					threshold: 100,
 				},
-				zoom: {
-					limits: {
-						x: { min: "original", max: "original" },
-						y: { min: "original", max: "original" },
-					},
-					zoom: {
-						wheel: {
-							enabled: true,
-						},
-						pinch: {
-							enabled: true,
-						},
-						mode: "xy",
-					},
+				draggable: {
+					enabled: true,
 				},
 			},
 		},
 	};
-	if (Chart.getChart("myChart") ) {
+	if (Chart.getChart("myChart")) {
 		Chart.getChart("myChart").destroy();
 	}
 	chart = new Chart(ctx, config);
@@ -405,54 +395,41 @@ async function fetchDatasets(names, callback) {
 		let rangeString = material.ranges[map[value]];
 		var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
 		var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
-		var newDataPoints = [];
+		
+		if(dataPoints.length> 1 && dataPoints.length<20000)
+		 console.log(name, " has less than 20000 data points");
 
 		if (dataPoints.length == 1) {
-			for (let i = 0; i < 2000; i++) {
-				if (i > 285 && i < 302) newDataPoints.push(dataPoints[0]);
-				else newDataPoints.push(null);
+			let roomTemp = dataPoints[0];
+			dataPoints = [];
+			for (let i = 0; i < 20000; i++) {
+				if (i > 285 && i < 302) dataPoints.push(roomTemp);
+				else dataPoints.push(null);
 				labels.push(i);
 			}
-		} else if (dataPoints.length > 1 && dataPoints.length < 20000) {
-			console.log(name + " does not have 20k values");
-			for (let i = 0; i < 2000; i++) {
-				newDataPoints.push(null);
-				labels.push(i);
-			}
-		} else {
-			let range = maxTemp - minTemp;
-			let modulo = (range * 10) / 25;
-			modulo = 10;
-			for (let i = 0; i < dataPoints.length; i++) {
-				if (i % modulo == 0) {
-					newDataPoints.push(dataPoints[i]);
-					labels.push(i * 0.1);
-				}
-			}
 		}
-		for (let i = 0; i < dataPoints.length; i++) {
-			if (newDataPoints[i] > 15000) newDataPoints[i] = 16000;
-			if (newDataPoints[i] < -15000) newDataPoints[i] = -16000;
-			if (!(i > min && i < max) || newDataPoints[i] == 0) newDataPoints[i] = null;
-		}
-		material.shadeCounter++;
 
-		//get number of properties that start with value
-		properties = material.properties.filter((p) => p.split("_")[0] === value);
+		for (let i = 0; i < dataPoints.length; i++) {
+			if (dataPoints[i] > 15000) dataPoints[i] = 16000;
+			if (dataPoints[i] < -15000) dataPoints[i] = -16000;
+			if (!(i > min && i < max) || dataPoints[i] == 0) dataPoints[i] = null;
+		}
+
+		material.temp_color = changeShadeOfColor(material.temp_color || material.color, 10);
 
 		return {
 			type: "line",
 			indexAxis: "x",
 			label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
-			data: newDataPoints.map((a, i) => {
+			data: dataPoints.map((a, i) => {
 				return {
 					x: i,
 					y: a,
 				};
 			}),
 			fill: false,
-			borderColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
-			backgroundColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
+			borderColor: material.temp_color,
+			backgroundColor: material.temp_color,
 			tension: 0.1,
 			value: value,
 		};
@@ -478,11 +455,14 @@ function getUnit() {
 			return "unknown unit";
 	}
 }
-
+function changeShadeOfColor(color, amount) {
+	return "#" + color.replace(/^#/, "").replace(/../g, (color) => ("0" + Math.min(255, Math.max(0, parseInt(color, 16) + amount)).toString(16)).substr(-2));
+}
 function getRandomColor() {
-	const brightnessThreshold = 24;
+	const brightnessThreshold = 16;
 	const letters = "0123456789ABCDEF";
 	let color = "#";
+
 
 	while (true) {
 		for (let i = 0; i < 6; i++) {
@@ -500,15 +480,6 @@ function getRandomColor() {
 
 		color = "#";
 	}
-}
-function getShadeOfColor(color, percent) {
-	const f = parseInt(color.slice(1), 16);
-	const t = percent < 0 ? 0 : 255;
-	const p = percent < 0 ? percent * -1 : percent;
-	const R = f >> 16;
-	const G = (f >> 8) & 0x00ff;
-	const B = f & 0x0000ff;
-	return "#" + (0x1000000 + (Math.round((t - R) * p) + R) * 0x10000 + (Math.round((t - G) * p) + G) * 0x100 + (Math.round((t - B) * p) + B)).toString(16).slice(1);
 }
 
 function showCompare() {
