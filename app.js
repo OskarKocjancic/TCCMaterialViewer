@@ -1,5 +1,5 @@
-// var materialLibraryURL = "https://materials.tccbuilder.org/";
-var materialLibraryURL = "http://127.0.0.1:5555/";
+var materialLibraryURL = "https://materials.tccbuilder.org/";
+// var materialLibraryURL = "http://127.0.0.1:5555/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
 var fromSlider = document.getElementById("fromSlider");
@@ -397,7 +397,7 @@ async function fetchDatasets(names, callback) {
 		var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
 		
 		if(dataPoints.length> 1 && dataPoints.length<20000)
-		 console.log(name, " has less than 20000 data points");
+		 console.log(name, " has less than 20000 data points.");
 
 		if (dataPoints.length == 1) {
 			let roomTemp = dataPoints[0];
