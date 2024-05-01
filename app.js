@@ -1,5 +1,5 @@
-var materialLibraryURL = "https://materials.tccbuilder.org/";
-// var materialLibraryURL = "http://127.0.0.1:5555/";
+// var materialLibraryURL = "https://materials.tccbuilder.org/";
+var materialLibraryURL = "http://127.0.0.1:5555/";
 var from = document.getElementById("from");
 var to = document.getElementById("to");
 var fromSlider = document.getElementById("fromSlider");
@@ -125,7 +125,7 @@ db.open({
 				});
 				Promise.all(promises).then(() => {
 					materials.forEach((m) => fetchAllFiles(m));
-					Promise.all(promisedFiles).then((d) => {
+					Promise.all(promisedFiles).then(() => {
 						document.querySelector(".loadingScreen").style.display = "none";
 					});
 				});
@@ -136,10 +136,9 @@ db.open({
 						materials.filter((a) => a.properties.includes(select.value)).map((m) => m.name + "/appInfo/" + select.value),
 						(d) => {
 							datasets = d.filter((p) => p.data.length > 1);
-							if (chart != undefined) chart.destroy();
-							chart = generateChart();
 							canvas.style.display = "block";
 							document.querySelector("#loading").style.display = "none";
+							generateChart();
 						}
 					);
 				};
@@ -206,10 +205,9 @@ function loadProperties(material, propertiesContainer) {
 			materials.forEach((m) => (m.shadeCounter = 0));
 			fetchDatasets(shownFiles, (d) => {
 				datasets = d.filter((p) => p.data.length > 1);
-				if (chart != undefined) chart.destroy();
-				chart = generateChart();
 				canvas.style.display = "block";
 				document.querySelector("#loading").style.display = "none";
+				generateChart();
 			});
 		};
 	});
@@ -226,16 +224,6 @@ function applyRange() {
 	minTemp = regex.test(fromValue) ? Math.round(parseFloat(fromValue)) : 0;
 	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
 
-	// fetchDatasets(shownFiles, (d) => {
-	// 	datasets = d.filter((p) => p.data.length > 1);
-	// 	if (chart != undefined) chart.destroy();
-	// 	chart = generateChart();
-	// 	canvas.style.display = "block";
-	// 	document.querySelector("#loading").style.display = "none";
-	// });
-	// datasets = d.filter((p) => p.data.length > 1);
-	// if (chart != undefined) chart.destroy();
-	// chart = generateChart();
 	if (chart != undefined) {
 		chart.options.scales.x.min = minTemp;
 		chart.options.scales.x.max = maxTemp;
@@ -244,7 +232,8 @@ function applyRange() {
 }
 
 function generateChart() {
-	return new Chart(ctx, {
+
+	const config = {
 		type: "line",
 		data: {
 			labels: labels,
@@ -339,7 +328,11 @@ function generateChart() {
 				},
 			},
 		},
-	});
+	};
+	if (Chart.getChart("myChart") ) {
+		Chart.getChart("myChart").destroy();
+	}
+	chart = new Chart(ctx, config);
 }
 
 function reset() {
@@ -352,39 +345,11 @@ function reset() {
 	if (chart != undefined) chart.destroy();
 	document.querySelectorAll("button").forEach((button) => button.classList.remove("activeMaterialProperty"));
 }
-function reload(){
-	server.files.clear();	
+function reload() {
+	server.files.clear();
 	location.reload();
-	
-
 }
 
-// async function getFile(name, url) {
-// 	// check if file is already in database and return it
-// 	// else fetch it and add it to the database
-// 	return server.files.get(name).then(function (results) {
-// 		if (results !== undefined) {
-// 			console.log(`${name} already in database`);
-// 			return results.data;
-// 		} else {
-// 			return fetch(url)
-// 				.then((response) => {
-// 					if (!response.ok) {
-// 						console.log(name + " not found", response);
-// 						return "0.0\n".repeat(20000);
-// 					} else return response.text();
-// 				})
-// 				.then((data) => {
-// 					server.files.add({
-// 						url: name,
-// 						data: data,
-// 					});
-// 					console.log(`added ${name} database`);
-// 					return data;
-// 				});
-// 		}
-// 	});
-// }
 function getFile(name, url) {
 	return new Promise((resolve, reject) => {
 		server.files.get(name).then(function (results) {
@@ -425,86 +390,6 @@ async function fetchDatasets(names, callback) {
 	canvas.style.display = "none";
 	datasets = names.map(async (name) => {
 		const url = materialLibraryURL + name + ".txt";
-		// server.files.get(name + ".txt").then(function (results) {
-		// 	if (results !== undefined) {
-		// 		return fetch(url)
-		// 			.then((response) => {
-		// 				if (!response.ok) {
-		// 					console.log(name + " not found");
-		// 					return "0.0\n".repeat(20000);
-		// 				}
-
-		// 				return response.text();
-		// 			})
-		// 			.then((data) => {
-		// 				server.files.add({
-		// 					url: name + ".txt",
-		// 					data: data,
-		// 				});
-		// 				return data;
-		// 			});
-		// 	} else {
-		// 		var dataPoints = data.trim().split("\n");
-		// 		dataPoints = dataPoints.map((a) => parseFloat(a));
-
-		// 		var material = materials.find((m) => m.name === name.split("/")[0]);
-		// 		var value = name.split("/")[2].split("_")[0];
-		// 		var map = {
-		// 			cp: "specificHeatCapacity",
-		// 			rho: "density",
-		// 			k: "thermalConductivity",
-		// 			dT: "adiabaticTemperatureChange",
-		// 		};
-		// 		let rangeString = material.ranges[map[value]];
-		// 		var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
-		// 		var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
-		// 		var newDataPoints = [];
-
-		// 		if (dataPoints.length == 1) {
-		// 			for (let i = 0; i < maxTemp; i++) {
-		// 				if (i > 285 && i < 302) newDataPoints.push(dataPoints[0]);
-		// 				else newDataPoints.push(null);
-		// 				labels.push(i);
-		// 			}
-		// 		} else {
-		// 			let range = maxTemp - minTemp;
-		// 			let modulo = (range * 10) / 25;
-		// 			modulo = 10;
-		// 			for (let i = 0; i < dataPoints.length; i++) {
-		// 				if (i % modulo == 0) {
-		// 					newDataPoints.push(dataPoints[i]);
-		// 					labels.push(i * 0.1);
-		// 				}
-		// 			}
-		// 		}
-		// 		for (let i = 0; i < dataPoints.length; i++) {
-		// 			if (newDataPoints[i] > 15000) newDataPoints[i] = 16000;
-		// 			if (newDataPoints[i] < -15000) newDataPoints[i] = -16000;
-		// 			if (!(i > min && i < max) || newDataPoints[i] == 0) newDataPoints[i] = null;
-		// 		}
-		// 		material.shadeCounter++;
-
-		// 		//get number of properties that start with value
-		// 		properties = material.properties.filter((p) => p.split("_")[0] === value);
-
-		// 		return {
-		// 			type: "line",
-		// 			indexAxis: "x",
-		// 			label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
-		// 			data: newDataPoints.map((a, i) => {
-		// 				return {
-		// 					x: i,
-		// 					y: a,
-		// 				};
-		// 			}),
-		// 			fill: false,
-		// 			borderColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
-		// 			backgroundColor: getShadeOfColor(material.color, 1 + (material.shadeCounter / properties.length + 1)),
-		// 			tension: 0.1,
-		// 			value: value,
-		// 		};
-		// 	}
-		// });
 		var data = await getFile(name + ".txt", url);
 		var dataPoints = data.trim().split("\n");
 		dataPoints = dataPoints.map((a) => parseFloat(a));
@@ -523,9 +408,15 @@ async function fetchDatasets(names, callback) {
 		var newDataPoints = [];
 
 		if (dataPoints.length == 1) {
-			for (let i = 0; i < maxTemp; i++) {
+			for (let i = 0; i < 2000; i++) {
 				if (i > 285 && i < 302) newDataPoints.push(dataPoints[0]);
 				else newDataPoints.push(null);
+				labels.push(i);
+			}
+		} else if (dataPoints.length > 1 && dataPoints.length < 20000) {
+			console.log(name + " does not have 20k values");
+			for (let i = 0; i < 2000; i++) {
+				newDataPoints.push(null);
 				labels.push(i);
 			}
 		} else {
