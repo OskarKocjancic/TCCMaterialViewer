@@ -4,6 +4,11 @@ var from = document.getElementById("from");
 var to = document.getElementById("to");
 var fromSlider = document.getElementById("fromSlider");
 var toSlider = document.getElementById("toSlider");
+var min = document.getElementById("min");
+var max = document.getElementById("max");
+var minSlider = document.getElementById("minSlider");
+var maxSlider = document.getElementById("maxSlider");
+
 const canvas = document.getElementById("myChart");
 const ctx = canvas.getContext("2d");
 var urlFlags = materialLibraryURL + "materials_flags.csv";
@@ -16,6 +21,9 @@ var whiteColor = getComputedStyle(document.documentElement).getPropertyValue("--
 var datasets;
 var minTemp = 0;
 var maxTemp = 2000;
+var maxScale = null;
+var minScale = null;
+
 var currentShownProperty = "";
 var server;
 var promisedFiles = [];
@@ -217,19 +225,25 @@ function loadProperties(material, propertiesContainer) {
 	});
 }
 function applyRange() {
-	const fromValue = from.value,
-		toValue = to.value;
+	const fromValue = from.value;
+	const toValue = to.value;
 	const regex = /^\d+$/;
 
 	from.style.border = regex.test(fromValue) ? "1px solid #ccc" : "1px solid red";
 	to.style.border = regex.test(toValue) ? "1px solid #ccc" : "1px solid red";
+	max.style.border = regex.test(max.value) ? "1px solid #ccc" : "1px solid red";
+	min.style.border = regex.test(min.value) ? "1px solid #ccc" : "1px solid red";
 
-	minTemp = regex.test(fromValue) ? Math.round(parseFloat(fromValue)) : 0;
+	minTemp = regex.test(fromSlider.value) ? Math.round(parseFloat(fromValue)) : 0;
 	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
+	minScale = regex.test(min.value) ? parseFloat(min.value) : minScale;
+	maxScale = regex.test(max.value) ? parseFloat(max.value) : maxScale;
 
 	if (chart != undefined) {
 		chart.options.scales.x.min = minTemp;
 		chart.options.scales.x.max = maxTemp;
+		maxScale ? (chart.options.scales.y.max = maxScale) : null;
+		minScale ? (chart.options.scales.y.min = minScale) : null;
 		chart.update();
 	}
 }
@@ -323,6 +337,16 @@ function generateChart() {
 		Chart.getChart("myChart").destroy();
 	}
 	chart = new Chart(ctx, config);
+
+	maxSlider.max = chart.scales.y.max;
+	maxSlider.min = chart.scales.y.min;
+	max.value = chart.scales.y.max;
+	maxSlider.value = chart.scales.y.max;
+	
+	minSlider.max = chart.scales.y.max;
+	minSlider.min = chart.scales.y.min;
+	min.value = chart.scales.y.min;
+	minSlider.value = chart.scales.y.min;
 }
 
 function reset() {
@@ -395,9 +419,8 @@ async function fetchDatasets(names, callback) {
 		let rangeString = material.ranges[map[value]];
 		var min = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[0]) : 0;
 		var max = rangeString !== "" && rangeString != undefined ? parseFloat(rangeString.split("-")[1]) : 2000;
-		
-		if(dataPoints.length> 1 && dataPoints.length<20000)
-		 console.log(name, " has less than 20000 data points.");
+
+		if (dataPoints.length > 1 && dataPoints.length < 20000) console.log(name, " has less than 20000 data points.");
 
 		if (dataPoints.length == 1) {
 			let roomTemp = dataPoints[0];
@@ -463,7 +486,6 @@ function getRandomColor() {
 	const letters = "0123456789ABCDEF";
 	let color = "#";
 
-
 	while (true) {
 		for (let i = 0; i < 6; i++) {
 			color += letters[Math.floor(Math.random() * 16)];
@@ -500,6 +522,8 @@ function showManual() {
 function syncInputsWithSliders() {
 	from.value = fromSlider.value;
 	to.value = toSlider.value;
+	min.value = minSlider.value;
+	max.value = maxSlider.value;
 	// if (from.value > to.value) {
 	// 	from.value = to.value;
 	// 	fromSlider.value = toSlider.value;
@@ -512,9 +536,13 @@ function syncSlidersWithInputs() {
 	if (to.value < 0) to.value = 0;
 	if (from.value > 2000) from.value = 2000;
 	if (from.value < 0) from.value = 0;
-	1;
+
+
 	fromSlider.value = from.value;
 	toSlider.value = to.value;
+	minSlider.value = min.value;
+	maxSlider.value = max.value;
+
 	// if (from.value > to.value) {
 	// 	from.value = to.value;
 	// 	fromSlider.value = toSlider.value;

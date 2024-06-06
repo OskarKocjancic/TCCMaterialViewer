@@ -43,6 +43,16 @@
 						<input id="toSlider" type="range" value="2000" min="0" max="2000" oninput="syncInputsWithSliders()" />
 						<input id="to" type="text" value="2000" oninput="syncSlidersWithInputs()" />
 					</div>
+					<div class="heading2">Min:</div>
+					<div class="rangeContainer">
+						<input id="minSlider" type="range" value="0" min="0" max="2000" oninput="syncInputsWithSliders()" />
+						<input id="min" type="text" value="0" oninput="syncSlidersWithInputs()" />
+					</div>
+					<div class="heading2">Max:</div>
+					<div class="rangeContainer">
+						<input id="maxSlider" type="range" value="2000" min="0" max="2000" oninput="syncInputsWithSliders()" />
+						<input id="max" type="text" value="2000" oninput="syncSlidersWithInputs()" />
+					</div>
 
 					<div class="buttonContainer">
 						<button class="navButton resetButton" onclick="reset()">Reset</button>
