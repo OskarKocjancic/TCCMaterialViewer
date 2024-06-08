@@ -8,7 +8,7 @@ var min = document.getElementById("min");
 var max = document.getElementById("max");
 var minSlider = document.getElementById("minSlider");
 var maxSlider = document.getElementById("maxSlider");
-
+var ranges = document.querySelector(".ranges");
 const canvas = document.getElementById("myChart");
 const ctx = canvas.getContext("2d");
 var urlFlags = materialLibraryURL + "materials_flags.csv";
@@ -19,8 +19,8 @@ var shownFiles = [];
 var selectProperties = ["rho"];
 var whiteColor = getComputedStyle(document.documentElement).getPropertyValue("--light-white");
 var datasets;
-var minTemp = 0;
-var maxTemp = 2000;
+var minTemp = null;
+var maxTemp = null;
 var maxScale = null;
 var minScale = null;
 
@@ -211,39 +211,42 @@ function loadProperties(material, propertiesContainer) {
 				if (shownFiles.length == 0) reset();
 			} else shownFiles.push(name);
 
-			fetchDatasets(shownFiles, (d) => {
-				datasets = d.filter((p) => p.data.length > 1);
+			if (shownFiles.length > 0)
+				fetchDatasets(shownFiles, (d) => {
+					datasets = d.filter((p) => p.data.length > 1);
 
-				materials.forEach((m) => {
-					m.temp_color = undefined;
+					materials.forEach((m) => {
+						m.temp_color = undefined;
+					});
+					canvas.style.display = "block";
+					document.querySelector("#loading").style.display = "none";
+					generateChart();
 				});
-				canvas.style.display = "block";
-				document.querySelector("#loading").style.display = "none";
-				generateChart();
-			});
 		};
 	});
 }
 function applyRange() {
-	const fromValue = from.value;
-	const toValue = to.value;
-	const regex = /^\d+$/;
+	const regex = /^-?\d+$/;
 
-	from.style.border = regex.test(fromValue) ? "1px solid #ccc" : "1px solid red";
-	to.style.border = regex.test(toValue) ? "1px solid #ccc" : "1px solid red";
+	from.style.border = regex.test(from.value) ? "1px solid #ccc" : "1px solid red";
+	to.style.border = regex.test(to.value) ? "1px solid #ccc" : "1px solid red";
 	max.style.border = regex.test(max.value) ? "1px solid #ccc" : "1px solid red";
 	min.style.border = regex.test(min.value) ? "1px solid #ccc" : "1px solid red";
 
-	minTemp = regex.test(fromSlider.value) ? Math.round(parseFloat(fromValue)) : 0;
-	maxTemp = regex.test(toValue) ? Math.round(parseFloat(toValue)) : 2000;
+	minTemp = regex.test(from.value) ? parseFloat(from.value) : minTemp;
+	maxTemp = regex.test(to.value) ? parseFloat(to.value) : maxTemp;
 	minScale = regex.test(min.value) ? parseFloat(min.value) : minScale;
 	maxScale = regex.test(max.value) ? parseFloat(max.value) : maxScale;
 
+	updateChartScales();
+}
+
+function updateChartScales() {
 	if (chart != undefined) {
-		chart.options.scales.x.min = minTemp;
-		chart.options.scales.x.max = maxTemp;
-		maxScale ? (chart.options.scales.y.max = maxScale) : null;
-		minScale ? (chart.options.scales.y.min = minScale) : null;
+		chart.options.scales.x.min = Math.floor(minTemp);
+		chart.options.scales.x.max = Math.ceil(maxTemp);
+		chart.options.scales.y.min = Math.floor(minScale);
+		chart.options.scales.y.max = Math.ceil(maxScale);
 		chart.update();
 	}
 }
@@ -274,8 +277,6 @@ function generateChart() {
 					},
 					type: "linear",
 					position: "bottom",
-					min: minTemp,
-					max: maxTemp,
 					title: {
 						display: true,
 						text: "Temperature (K)",
@@ -338,22 +339,35 @@ function generateChart() {
 	}
 	chart = new Chart(ctx, config);
 
+	updateChartScales();
+
+	fromSlider.max = chart.scales.x.max;
+	fromSlider.min = chart.scales.x.min;
+	from.value = chart.scales.x.min;
+	fromSlider.value = chart.scales.x.min;
+
+	toSlider.max = chart.scales.x.max;
+	toSlider.min = chart.scales.x.min;
+	to.value = chart.scales.x.max;
+	toSlider.value = chart.scales.x.max;
+
 	maxSlider.max = chart.scales.y.max;
 	maxSlider.min = chart.scales.y.min;
 	max.value = chart.scales.y.max;
 	maxSlider.value = chart.scales.y.max;
-	
+
 	minSlider.max = chart.scales.y.max;
 	minSlider.min = chart.scales.y.min;
 	min.value = chart.scales.y.min;
 	minSlider.value = chart.scales.y.min;
+
+	ranges.style.display = 'flex';
 }
 
 function reset() {
-	from.value = 0;
-	to.value = 2000;
-	minTemp = 0;
-	maxTemp = 2000;
+	minScale = maxScale = minTemp = maxTemp = null;
+	from.value = to.value = min.value = max.value = "-";
+	fromSlider.value = toSlider.value = minSlider.value = maxSlider.value = null;
 	currentShownProperty = "";
 	shownFiles = [];
 	if (chart != undefined) chart.destroy();
@@ -402,6 +416,7 @@ async function fetchAllFiles(m) {
 async function fetchDatasets(names, callback) {
 	document.querySelector("#loading").style.display = "block";
 	canvas.style.display = "none";
+	minTemp = maxTemp = minScale = maxScale = null;
 	datasets = names.map(async (name) => {
 		const url = materialLibraryURL + name + ".txt";
 		var data = await getFile(name + ".txt", url);
@@ -432,10 +447,33 @@ async function fetchDatasets(names, callback) {
 			}
 		}
 
+		let labeledDataPoints = [];
 		for (let i = 0; i < dataPoints.length; i++) {
 			if (dataPoints[i] > 15000) dataPoints[i] = 16000;
 			if (dataPoints[i] < -15000) dataPoints[i] = -16000;
-			if (!(i > min && i < max) || dataPoints[i] == 0) dataPoints[i] = null;
+			if (i > min * 10 && i < max * 10 && dataPoints[i] != null) {
+				labeledDataPoints.push({
+					x: i / 10,
+					y: dataPoints[i],
+				});
+				let tempValue = i / 10;
+				let scaleValue = dataPoints[i];
+
+				if (minTemp == null || minTemp > tempValue) minTemp = tempValue;
+				if (maxTemp == null || maxTemp < tempValue) maxTemp = tempValue;
+
+				if (maxScale == null || maxScale < scaleValue) maxScale = scaleValue;
+				if (minScale == null || minScale > scaleValue) minScale = scaleValue;
+			}
+		}
+
+		if (minTemp == maxTemp) {
+			minTemp = minTemp - 1;
+			maxTemp = maxTemp + 1;
+		}
+		if (minScale == maxScale) {
+			minScale = minScale - 1;
+			maxScale = maxScale + 1;
 		}
 
 		material.temp_color = changeShadeOfColor(material.temp_color || material.color, 10);
@@ -444,16 +482,11 @@ async function fetchDatasets(names, callback) {
 			type: "line",
 			indexAxis: "x",
 			label: names != shownFiles ? name.split("/")[0] : name.replace("/appInfo/", " - "),
-			data: dataPoints.map((a, i) => {
-				return {
-					x: i,
-					y: a,
-				};
-			}),
+			data: labeledDataPoints,
 			fill: false,
 			borderColor: material.temp_color,
 			backgroundColor: material.temp_color,
-			tension: 0.1,
+			tension: 1,
 			value: value,
 		};
 	});
@@ -520,6 +553,8 @@ function showManual() {
 }
 
 function syncInputsWithSliders() {
+	if (chart == undefined) return;
+
 	from.value = fromSlider.value;
 	to.value = toSlider.value;
 	min.value = minSlider.value;
@@ -532,20 +567,28 @@ function syncInputsWithSliders() {
 }
 
 function syncSlidersWithInputs() {
-	if (to.value > 2000) to.value = 2000;
-	if (to.value < 0) to.value = 0;
-	if (from.value > 2000) from.value = 2000;
-	if (from.value < 0) from.value = 0;
+	let fromValue = Number(from.value);
+	let toValue = Number(to.value);
+	let minValue = Number(min.value);
+	let maxValue = Number(max.value);
 
+	if (fromSlider.max < fromValue) {
+		fromSlider.max = fromValue;
+	} else if (fromSlider.min > fromValue) fromSlider.min = fromValue;
 
-	fromSlider.value = from.value;
-	toSlider.value = to.value;
-	minSlider.value = min.value;
-	maxSlider.value = max.value;
+	if (toSlider.max < toValue) toSlider.max = toValue;
+	else if (toSlider.min > toValue) toSlider.min = toValue;
 
-	// if (from.value > to.value) {
-	// 	from.value = to.value;
-	// 	fromSlider.value = toSlider.value;
-	// }
+	if (minSlider.max < minValue) minSlider.max = minValue;
+	else if (minSlider.min > minValue) minSlider.min = minValue;
+
+	if (maxSlider.max < maxValue) maxSlider.max = maxValue;
+	else if (maxSlider.min > maxValue) maxSlider.min = maxValue;
+
+	maxSlider.value = maxValue;
+	minSlider.value = minValue;
+	toSlider.value = toValue;
+	fromSlider.value = fromValue;
+
 	applyRange();
 }
