@@ -441,7 +441,7 @@ async function fetchDatasets(names, callback) {
 			let roomTemp = dataPoints[0];
 			dataPoints = [];
 			for (let i = 0; i < 20000; i++) {
-				if (i > 285 && i < 302) dataPoints.push(roomTemp);
+				if (i > 2850 && i < 3020) dataPoints.push(roomTemp);
 				else dataPoints.push(null);
 				labels.push(i);
 			}
